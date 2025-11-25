@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+google-cloud-storage
+duckdb
+pillow
+numpy
+jinja2
+python-multipart
+pytest
+httpx
+pytest-asyncio
