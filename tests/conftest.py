@@ -27,7 +27,8 @@ def mock_db_connection(monkeypatch):
             mean_color_r DOUBLE,
             mean_color_g DOUBLE,
             mean_color_b DOUBLE,
-            url VARCHAR
+            url VARCHAR,
+            hog_features FLOAT[]
         )
     """)
     
