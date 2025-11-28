@@ -75,6 +75,18 @@
         <div class="card">
             <h2>Statistics Overview</h2>
             <canvas id="statsChart"></canvas>
+
+            <div id="hogContainer" style="margin-top: 20px; display: none; text-align: center;">
+                <h3>HOG Visualization</h3>
+                <img id="hogImage" src="" alt="HOG Visualization" style="max-width: 100%; border: 1px solid #ddd;">
+            </div>
+        </div>
+
+        <div class="card upload-section">
+            <div id="debugContainer" style="margin-top: 20px; display: none;">
+                <h3>Debug Output</h3>
+                <pre id="debugOutput" style="background: #f4f4f4; padding: 10px; overflow-x: auto;"></pre>
+            </div>
         </div>
     </div>
 
@@ -140,8 +152,23 @@
                     body: formData
                 });
                 const data = await response.json();
+                console.log("Upload response data:", data); // Debug log
+
+                // Show debug output
+                const debugOutput = document.getElementById('debugOutput');
+                debugOutput.textContent = JSON.stringify(data, null, 2);
+                document.getElementById('debugContainer').style.display = 'block';
+
                 if (response.ok) {
                     resultDiv.textContent = "Success! ID: " + data.id;
+
+                    // Display HOG image
+                    if (data.stats.hog_image_b64) {
+                        const hogImg = document.getElementById('hogImage');
+                        hogImg.src = "data:image/png;base64," + data.stats.hog_image_b64;
+                        document.getElementById('hogContainer').style.display = 'block';
+                    }
+
                     fetchStats(); // Refresh stats
                 } else {
                     resultDiv.textContent = "Error: " + (data.detail || "Unknown error");

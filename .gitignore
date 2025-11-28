@@ -4,3 +4,4 @@ __pycache__/
 *$py.class
 server.log
 image_stats.duckdb
+venv/

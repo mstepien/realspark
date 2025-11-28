@@ -9,3 +9,7 @@ python-multipart
 pytest
 httpx
 pytest-asyncio
+
+#HOG features, skimage
+scikit-image
+matplotlib

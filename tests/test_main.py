@@ -37,6 +37,8 @@ def test_upload_image_flow(mock_db_connection, mock_storage_client):
     assert data['stats']['width'] == 50
     assert data['stats']['height'] == 50
     assert data['stats']['mean_color'] == [0.0, 0.0, 255.0]
+    assert "hog_features" in data['stats']
+    assert "hog_image_b64" in data['stats']
     
     # Verify stats updated
     stats_response = client.get("/stats")

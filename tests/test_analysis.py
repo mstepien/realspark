@@ -21,6 +21,20 @@ def test_analyze_image_valid():
     assert stats['height'] == 100
     # Red in RGB is (255, 0, 0)
     assert stats['mean_color'] == [255.0, 0.0, 0.0]
+    
+    # Check HOG
+    assert "hog_features" in stats
+    # HOG vector length depends on params. For 128x64, 8x8 cells, 2x2 blocks, 9 orientations:
+    # Blocks vertical: (128/8) - 1 = 15
+    # Blocks horizontal: (64/8) - 1 = 7
+    # Total blocks = 15 * 7 = 105
+    # Features = 105 * 2 * 2 * 9 = 3780
+    assert len(stats['hog_features']) == 3780
+    
+    # Check HOG visualization
+    assert "hog_image_b64" in stats
+    assert isinstance(stats['hog_image_b64'], str)
+    assert len(stats['hog_image_b64']) > 0
 
 def test_analyze_image_gradient():
     # Create a 2x2 image

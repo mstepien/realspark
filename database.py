@@ -19,7 +19,8 @@ def init_db():
             mean_color_r DOUBLE,
             mean_color_g DOUBLE,
             mean_color_b DOUBLE,
-            url VARCHAR
+            url VARCHAR,
+            hog_features FLOAT[]
         )
     """)
     con.close()
@@ -29,10 +30,10 @@ def save_stats(filename, url, stats):
     image_id = str(uuid.uuid4())
     
     con.execute("""
-        INSERT INTO image_stats (id, filename, upload_time, width, height, mean_color_r, mean_color_g, mean_color_b, url)
-        VALUES (?, ?, current_timestamp, ?, ?, ?, ?, ?, ?)
+        INSERT INTO image_stats (id, filename, upload_time, width, height, mean_color_r, mean_color_g, mean_color_b, url, hog_features)
+        VALUES (?, ?, current_timestamp, ?, ?, ?, ?, ?, ?, ?)
     """, (image_id, filename, stats['width'], stats['height'], 
-          stats['mean_color'][0], stats['mean_color'][1], stats['mean_color'][2], url))
+          stats['mean_color'][0], stats['mean_color'][1], stats['mean_color'][2], url, stats.get('hog_features')))
     con.close()
     return image_id
 

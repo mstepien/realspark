@@ -10,7 +10,8 @@ def test_save_and_get_stats(mock_db_connection):
     stats = {
         "width": 100,
         "height": 200,
-        "mean_color": [10.0, 20.0, 30.0]
+        "mean_color": [10.0, 20.0, 30.0],
+        "hog_features": [0.1] * 3780
     }
     save_stats("test.jpg", "http://url", stats)
     
@@ -22,8 +23,8 @@ def test_save_and_get_stats(mock_db_connection):
     assert after['avg_color'] == [10.0, 20.0, 30.0]
 
 def test_multiple_images_aggregation(mock_db_connection):
-    stats1 = {"width": 100, "height": 100, "mean_color": [0, 0, 0]}
-    stats2 = {"width": 200, "height": 200, "mean_color": [100, 100, 100]}
+    stats1 = {"width": 100, "height": 100, "mean_color": [0, 0, 0], "hog_features": [0.0]*3780}
+    stats2 = {"width": 200, "height": 200, "mean_color": [100, 100, 100], "hog_features": [0.0]*3780}
     
     save_stats("1.jpg", "u1", stats1)
     save_stats("2.jpg", "u2", stats2)
