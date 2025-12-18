@@ -1,15 +1,7 @@
 #!/bin/bash
 
-# Find the PID of the running uvicorn process
-PID=$(ps aux | grep "uvicorn main:app" | grep -v grep | awk '{print $2}')
-
-if [ -n "$PID" ]; then
-    echo "Stopping existing application (PID: $PID)..."
-    kill $PID
-    sleep 2 # Wait for it to shut down
-else
-    echo "No running application found."
-fi
+echo "Stopping application..."
+bash app_stop.sh
 
 echo "Starting application..."
 source venv/bin/activate
