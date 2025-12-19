@@ -2,7 +2,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
-import base64
 
 def create_hog_visualization(hog_image):
     """
@@ -19,8 +18,8 @@ def create_hog_visualization(hog_image):
     
     # Save to buffer
     buff = io.BytesIO()
-    plt.savefig(buff, format="PNG", bbox_inches='tight', pad_inches=0)
+    plt.savefig(buff, format="PNG", bbox_inches='tight', pad_inches=0, dpi=300)
     plt.close(fig) # Close the figure to free memory
     
-    # Encode to base64
-    return base64.b64encode(buff.getvalue()).decode("utf-8")
+    buff.seek(0)
+    return buff

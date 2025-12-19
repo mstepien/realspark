@@ -62,6 +62,30 @@ This will execute all tests located in the `tests/` directory.
     *   Submit the form to upload the image.
     *   The application will analyze the image and display statistics related to its composition and features.
 
-2.  **API Endpoints**:
-    *   `POST /upload`: Upload an image file for analysis.
-    *   `GET /stats`: Retrieve aggregate statistics of analyzed images.
+## API Reference
+
+### Upload Image
+**POST** `/upload`
+*   Starts an asynchronous image analysis task.
+*   **Body**: `multipart/form-data` with `file` field.
+*   **Response**: `{"task_id": "uuid..."}`
+
+### Check Progress
+**GET** `/progress/{task_id}`
+*   Returns the status and progress of a task.
+*   **Response**: JSON containing:
+    *   `status`: (string) Current status message.
+    *   `progress`: (int) Progress percentage (0-100).
+    *   `steps`: (list) List of total steps.
+    *   `current_step`: (string) The step currently executing.
+    *   `completed_steps`: (list) List of completed steps.
+    *   `result`: (object, optional) Final result when complete (includes `stats` and `hog_image_url`).
+    *   `error`: (string, optional) Error message if failed.
+
+### Get Statistics
+**GET** `/stats`
+*   Retrieves aggregate statistics of all analyzed images.
+
+### Get Static File
+**GET** `/tmp/{filename}`
+*   Serves generated files like HOG visualizations.

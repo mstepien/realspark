@@ -31,14 +31,36 @@ def test_upload_image_flow(mock_db_connection, mock_storage_client):
     response = client.post("/upload", files=files)
     
     assert response.status_code == 200
-    data = response.json()
+    start_data = response.json()
+    assert "task_id" in start_data
+    task_id = start_data["task_id"]
+    
+    # Poll for completion
+    import time
+    max_retries = 10
+    for _ in range(max_retries):
+        progress_response = client.get(f"/progress/{task_id}")
+        assert progress_response.status_code == 200
+        task_data = progress_response.json()
+        
+        if task_data.get("status") == "Complete":
+            data = task_data["result"]
+            break
+        
+        if task_data.get("status") == "Error":
+            pytest.fail(f"Task failed: {task_data.get('error')}")
+            
+        time.sleep(0.1)
+    else:
+        pytest.fail("Task timed out")
     
     assert "id" in data
     assert data['stats']['width'] == 50
     assert data['stats']['height'] == 50
     assert data['stats']['mean_color'] == [0.0, 0.0, 255.0]
     assert "hog_features" in data['stats']
-    assert "hog_image_b64" in data['stats']
+    assert "hog_image_url" in data['stats']
+    assert data['stats']['hog_image_url'].startswith("/tmp/")
     
     # Verify stats updated
     stats_response = client.get("/stats")
