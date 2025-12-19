@@ -65,3 +65,20 @@ def mock_storage_client(monkeypatch):
     monkeypatch.setattr("storage.storage_client", mock_client)
     
     return mock_client
+
+@pytest.fixture(autouse=True)
+def mock_transformers(monkeypatch):
+    """
+    Mocks the transformers pipeline to avoid downloading models during tests.
+    """
+    mock_pipeline = MagicMock()
+    mock_pipeline.return_value = [
+        {'label': 'AI', 'score': 0.1},
+        {'label': 'Human', 'score': 0.9}
+    ]
+    
+    def mock_get_pipeline(*args, **kwargs):
+        return mock_pipeline
+        
+    monkeypatch.setattr("analysis.aiclassifiers.pipeline", mock_get_pipeline)
+    return mock_pipeline

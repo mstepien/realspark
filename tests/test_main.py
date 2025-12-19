@@ -9,7 +9,7 @@ client = TestClient(app)
 def test_read_root():
     response = client.get("/")
     assert response.status_code == 200
-    assert "Image Statistics Dashboard" in response.text
+    assert "Is that image created by AI?" in response.text
 
 def test_get_stats_empty(mock_db_connection):
     response = client.get("/stats")

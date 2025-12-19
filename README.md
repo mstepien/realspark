@@ -62,6 +62,25 @@ This will execute all tests located in the `tests/` directory.
     *   Submit the form to upload the image.
     *   The application will analyze the image and display statistics related to its composition and features.
 
+## Features
+
+### AI Image Detection (Offline)
+The application uses a pre-trained **Vision Transformer (ViT)** model locally for high-accuracy detection of AI-generated content.
+- **Model**: `Ateeqq/ai-vs-human-image-detector` (available on Hugging Face).
+- **Architecture**: Vision Transformer (ViT).
+- **Implementation**: Uses `transformers` and `torch` for offline inference.
+
+It provides a probability score (0.0 to 1.0) where higher values indicate high likelihood of AI generation.
+
+### HOG Feature Visualization
+Histogram of Oriented Gradients (HOG) analysis is performed to identify structural patterns in the image, which are then visualized to show the detected features.
+
+### Modular Analysis Package
+The analysis logic is organized into a modular package structure:
+- `analysis/analysis.py`: Numerical image analysis (HOG, metadata).
+- `analysis/aiclassifiers.py`: AI classification logic and model management.
+
+
 ## API Reference
 
 ### Upload Image
@@ -76,7 +95,12 @@ This will execute all tests located in the `tests/` directory.
 *   **Response**: JSON containing:
     *   `status`: (string) Current status message.
     *   `progress`: (int) Progress percentage (0-100).
-    *   `steps`: (list) List of total steps.
+    *   `steps`: (list) List of total steps:
+        1. `Preprocessing`: Basic image loading and metadata extraction.
+        2. `HOG Analysis`: Computing Histogram of Oriented Gradients.
+        3. `AI Classifier`: Running the ViT inference.
+        4. `Uploading to Storage`: Saving the original image to GCS.
+        5. `Saving to Database`: Storing results and metadata in DuckDB.
     *   `current_step`: (string) The step currently executing.
     *   `completed_steps`: (list) List of completed steps.
     *   `result`: (object, optional) Final result when complete (includes `stats` and `hog_image_url`).
@@ -89,3 +113,7 @@ This will execute all tests located in the `tests/` directory.
 ### Get Static File
 **GET** `/tmp/{filename}`
 *   Serves generated files like HOG visualizations.
+
+
+# TODO:
+- Read embedded SynthID digital watermark (Requires Google Cloud Vertex AI SDK; no offline library available) 

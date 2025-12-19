@@ -13,3 +13,8 @@ pytest-asyncio
 #HOG features, skimage
 scikit-image
 matplotlib
+
+#models
+transformers
+torch
+torchvision
