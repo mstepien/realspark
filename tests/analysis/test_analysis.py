@@ -36,6 +36,11 @@ def test_analyze_image_valid():
     assert "hog_image_buffer" in stats
     assert isinstance(stats['hog_image_buffer'], io.BytesIO)
     assert len(stats['hog_image_buffer'].getvalue()) > 0
+    
+    # Check AI probability (mocked in conftest)
+    assert "ai_probability" in stats
+    assert isinstance(stats['ai_probability'], float)
+    assert stats['ai_probability'] == 0.1
 
 def test_analyze_image_gradient():
     # Create a 2x2 image

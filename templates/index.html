@@ -116,12 +116,24 @@
         .step-icon.done {
             color: #27ae60;
         }
+
+        .ai-score-safe {
+            color: #27ae60;
+        }
+
+        .ai-score-warning {
+            color: #f39c12;
+        }
+
+        .ai-score-danger {
+            color: #c0392b;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Image Statistics Dashboard</h1>
+        <h1>Is that image created by AI?</h1>
 
         <div class="card upload-section">
             <h2>Upload New Image</h2>
@@ -136,6 +148,12 @@
             <div id="statusText" class="status-text"></div>
             <ul id="stepList" class="step-list"></ul>
             <div id="uploadResult" style="margin-top: 10px;"></div>
+        </div>
+
+        <div id="aiResultCard" class="card" style="display: none; text-align: center;">
+            <h2>AI Detection Analysis</h2>
+            <div id="aiScoreDisplay" style="font-size: 36px; font-weight: bold; margin: 15px 0;"></div>
+            <div id="aiDescription" style="font-size: 18px; color: #555;"></div>
         </div>
 
         <div class="card">
@@ -314,6 +332,29 @@
                                 const hogImg = document.getElementById('hogImage');
                                 hogImg.src = data.stats.hog_image_url;
                                 document.getElementById('hogContainer').style.display = 'block';
+                            }
+
+                            // Display AI Detection Result
+                            if (data.stats.ai_probability !== undefined) {
+                                const aiCard = document.getElementById('aiResultCard');
+                                const aiScore = document.getElementById('aiScoreDisplay');
+                                const aiDesc = document.getElementById('aiDescription');
+                                const prob = data.stats.ai_probability;
+                                const percent = (prob * 100).toFixed(1);
+
+                                aiScore.textContent = percent + "% AI Probability";
+                                aiCard.style.display = 'block';
+
+                                if (prob < 0.3) {
+                                    aiScore.className = "ai-score-safe";
+                                    aiDesc.textContent = "Likely Human-Created / Authentic Art";
+                                } else if (prob < 0.7) {
+                                    aiScore.className = "ai-score-warning";
+                                    aiDesc.textContent = "Uncertain / Mixed Indicators";
+                                } else {
+                                    aiScore.className = "ai-score-danger";
+                                    aiDesc.textContent = "High Likelihood of AI Generation";
+                                }
                             }
 
                             fetchStats(); // Refresh stats
