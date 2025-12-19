@@ -55,6 +55,67 @@
         input[type="file"] {
             margin-bottom: 10px;
         }
+
+        .progress-container {
+            width: 100%;
+            background-color: #f3f3f3;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #3498db;
+            border-radius: 4px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 12px;
+            transition: width 0.3s;
+        }
+
+        .status-text {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .step-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0 0;
+            display: none;
+            /* Hidden by default */
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .step-icon {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .step-icon.pending {
+            color: #ccc;
+        }
+
+        .step-icon.active {
+            color: #3498db;
+        }
+
+        .step-icon.done {
+            color: #27ae60;
+        }
     </style>
 </head>
 
@@ -69,6 +130,11 @@
                 <br>
                 <button type="submit">Upload & Analyze</button>
             </form>
+            <div id="progressContainer" class="progress-container">
+                <div id="progressBar" class="progress-bar">0%</div>
+            </div>
+            <div id="statusText" class="status-text"></div>
+            <ul id="stepList" class="step-list"></ul>
             <div id="uploadResult" style="margin-top: 10px;"></div>
         </div>
 
@@ -84,8 +150,13 @@
 
         <div class="card upload-section">
             <div id="debugContainer" style="margin-top: 20px; display: none;">
-                <h3>Debug Output</h3>
-                <pre id="debugOutput" style="background: #f4f4f4; padding: 10px; overflow-x: auto;"></pre>
+                <details open>
+                    <summary
+                        style="padding: 10px; background: #eee; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        View Raw Debug Data</summary>
+                    <pre id="debugOutput"
+                        style="background: #f4f4f4; padding: 10px; overflow-x: auto; margin-top: 10px; border: 1px solid #ddd; border-radius: 4px;"></pre>
+                </details>
             </div>
         </div>
     </div>
@@ -144,36 +215,116 @@
             e.preventDefault();
             const formData = new FormData(e.target);
             const resultDiv = document.getElementById('uploadResult');
-            resultDiv.textContent = "Uploading...";
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const statusText = document.getElementById('statusText');
+            const stepList = document.getElementById('stepList');
+
+            resultDiv.textContent = "";
+            statusText.textContent = "";
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            stepList.innerHTML = "";
+            stepList.style.display = 'none';
 
             try {
-                const response = await fetch('/upload', {
+                // Start upload task
+                const startResponse = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
-                const data = await response.json();
-                console.log("Upload response data:", data); // Debug log
 
-                // Show debug output
-                const debugOutput = document.getElementById('debugOutput');
-                debugOutput.textContent = JSON.stringify(data, null, 2);
-                document.getElementById('debugContainer').style.display = 'block';
-
-                if (response.ok) {
-                    resultDiv.textContent = "Success! ID: " + data.id;
-
-                    // Display HOG image
-                    if (data.stats.hog_image_b64) {
-                        const hogImg = document.getElementById('hogImage');
-                        hogImg.src = "data:image/png;base64," + data.stats.hog_image_b64;
-                        document.getElementById('hogContainer').style.display = 'block';
-                    }
-
-                    fetchStats(); // Refresh stats
-                } else {
-                    resultDiv.textContent = "Error: " + (data.detail || "Unknown error");
+                if (!startResponse.ok) {
+                    throw new Error("Failed to start upload");
                 }
+
+                const startData = await startResponse.json();
+                const taskId = startData.task_id;
+                console.log("Task started:", taskId);
+
+                // Poll for progress
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const progressResponse = await fetch('/progress/' + taskId);
+                        if (!progressResponse.ok) return;
+
+                        const taskData = await progressResponse.json();
+
+                        // Update UI
+                        const progress = taskData.progress || 0;
+                        progressBar.style.width = progress + '%';
+                        progressBar.textContent = progress + '%';
+                        statusText.textContent = taskData.status;
+
+                        // Render steps if available
+                        if (taskData.steps) {
+                            stepList.style.display = 'block';
+                            stepList.innerHTML = ''; // Re-render logic is simple but inefficient, good enough for now
+
+                            taskData.steps.forEach(step => {
+                                const li = document.createElement('li');
+                                li.className = 'step-item';
+
+                                const iconSpan = document.createElement('span');
+                                iconSpan.className = 'step-icon';
+
+                                const textSpan = document.createElement('span');
+                                textSpan.textContent = step;
+
+                                if (taskData.completed_steps && taskData.completed_steps.includes(step)) {
+                                    iconSpan.textContent = '✓'; // Green Tick
+                                    iconSpan.classList.add('done');
+                                } else if (taskData.current_step === step) {
+                                    iconSpan.textContent = '➤'; // Arrow/Spinner placeholder
+                                    iconSpan.classList.add('active');
+                                    textSpan.style.fontWeight = 'bold';
+                                } else {
+                                    iconSpan.textContent = '•'; // Grey Dot
+                                    iconSpan.classList.add('pending');
+                                }
+
+                                li.appendChild(iconSpan);
+                                li.appendChild(textSpan);
+                                stepList.appendChild(li);
+                            });
+                        }
+
+                        if (taskData.error) {
+                            clearInterval(pollInterval);
+                            progressContainer.style.display = 'none';
+                            stepList.style.display = 'none';
+                            resultDiv.textContent = "Error: " + taskData.error;
+                        } else if (progress >= 100 && taskData.result) {
+                            clearInterval(pollInterval);
+
+                            // Success!
+                            const data = taskData.result;
+                            console.log("Task complete:", data);
+
+                            // Show debug output
+                            const debugOutput = document.getElementById('debugOutput');
+                            debugOutput.textContent = JSON.stringify(data, null, 2);
+                            document.getElementById('debugContainer').style.display = 'block';
+
+                            resultDiv.textContent = "Success! ID: " + data.id;
+
+                            // Display HOG image
+                            if (data.stats.hog_image_url) {
+                                const hogImg = document.getElementById('hogImage');
+                                hogImg.src = data.stats.hog_image_url;
+                                document.getElementById('hogContainer').style.display = 'block';
+                            }
+
+                            fetchStats(); // Refresh stats
+                        }
+                    } catch (e) {
+                        console.error("Polling error", e);
+                    }
+                }, 500); // Poll every 500ms
+
             } catch (err) {
+                progressContainer.style.display = 'none';
                 resultDiv.textContent = "Error: " + err.message;
             }
         });
