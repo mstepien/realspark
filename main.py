@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 from database import init_db, save_stats, get_aggregate_stats
 from storage import upload_to_gcs
-from analysis import prepare_image, compute_hog, detect_ai
+from analysis import prepare_image, compute_hog, detect_ai, compute_fractal_stats
 import io
 import os
 import uuid
@@ -26,6 +26,7 @@ STEPS = [
     "Preprocessing",
     "HOG Analysis", 
     "AI Classifier",
+    "Fractal Analysis",
     "Uploading to Storage",
     "Saving to Database"
 ]
@@ -45,42 +46,53 @@ async def process_image_task(task_id: str, content: bytes, filename: str):
         # Step 2: HOG Analysis (Weight 5)
         tasks[task_id]["status"] = "HOG Analysis..."
         tasks[task_id]["current_step"] = "HOG Analysis"
-        tasks[task_id]["progress"] = 10 
-        
+        tasks[task_id]["progress"] = 10
+
         image, np_image, width, height, mean_color = await asyncio.to_thread(prepare_image, content)
         fd, hog_image_buffer = await asyncio.to_thread(compute_hog, np_image)
-        
+
         tasks[task_id]["completed_steps"].append("HOG Analysis")
-        tasks[task_id]["progress"] = 40 
+        tasks[task_id]["progress"] = 25
 
         # Step 3: AI Classifier (Weight 5)
         tasks[task_id]["status"] = "AI Classifier..."
         tasks[task_id]["current_step"] = "AI Classifier"
-        tasks[task_id]["progress"] = 45
+        tasks[task_id]["progress"] = 25 # Start where previous left off
 
         ai_score = await asyncio.to_thread(detect_ai, image)
+        tasks[task_id]["completed_steps"].append("AI Classifier")
+        tasks[task_id]["progress"] = 40
+
+        # Step 4: Fractal Analysis (Weight 10)
+        tasks[task_id]["status"] = "Fractal Analysis..."
+        tasks[task_id]["current_step"] = "Fractal Analysis"
+        tasks[task_id]["progress"] = 40
         
+        fractal_stats = await asyncio.to_thread(compute_fractal_stats, np_image)
+        tasks[task_id]["completed_steps"].append("Fractal Analysis")
+        tasks[task_id]["progress"] = 70
+
         stats = {
             "width": width,
             "height": height,
             "mean_color": mean_color.tolist(),
             "hog_features": fd.tolist(),
             "hog_image_buffer": hog_image_buffer,
-            "ai_probability": ai_score
+            "ai_probability": ai_score,
+            **fractal_stats
         }
 
-        tasks[task_id]["completed_steps"].append("AI Classifier")
-        tasks[task_id]["progress"] = 85 
-        
-        # Step 4: Upload to GCS (Weight 1)
+        tasks[task_id]["progress"] = 75
+
+        # Step 5: Upload to GCS (Weight 1)
         tasks[task_id]["status"] = "Uploading to Storage..."
         tasks[task_id]["current_step"] = "Uploading to Storage"
         file_obj = io.BytesIO(content)
         url = await upload_to_gcs(file_obj, filename)
         tasks[task_id]["completed_steps"].append("Uploading to Storage")
-        tasks[task_id]["progress"] = 92
+        tasks[task_id]["progress"] = 85
         
-        # Step 5: Save to DB (Weight 1)
+        # Step 6: Save to DB (Weight 1)
         tasks[task_id]["status"] = "Saving to Database..."
         tasks[task_id]["current_step"] = "Saving to Database"
         image_id = save_stats(filename, url, stats)

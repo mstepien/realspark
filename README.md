@@ -10,11 +10,13 @@ This application is aimed to count various statistics in uploaded images to deci
 ## Installation
 
 1.  Clone the repository.
-2.  Create a virtual environment (optional but recommended):
+2.  **Create and Activate a Virtual Environment (Required):**
     ```bash
     python3 -m venv venv
     source venv/bin/activate
     ```
+    *Note: Always allow the `venv` environment for development and running the app.*
+
 3.  Install the required dependencies:
     ```bash
     pip install -r requirements.txt
@@ -29,7 +31,7 @@ You can run the application using `uvicorn` directly or via the provided helper 
 This script manages the process for you, stopping any existing instances and starting a new one in the background.
 
 ```bash
-./restart_app.sh
+./app_restart.sh
 ```
 
 Logs will be written to `server.log`.
@@ -46,9 +48,16 @@ The application will be available at `http://localhost:8080`.
 
 ## How to Run Tests
 
-The project uses `pytest` for testing. To run the test suite:
+The project uses `pytest` for testing. To run the test suite ensuring the correct environment is used:
 
 ```bash
+./venv/bin/pytest
+```
+
+Or, if you have already activated your virtual environment:
+
+```bash
+source venv/bin/activate
 pytest
 ```
 
@@ -99,8 +108,9 @@ The analysis logic is organized into a modular package structure:
         1. `Preprocessing`: Basic image loading and metadata extraction.
         2. `HOG Analysis`: Computing Histogram of Oriented Gradients.
         3. `AI Classifier`: Running the ViT inference.
-        4. `Uploading to Storage`: Saving the original image to GCS.
-        5. `Saving to Database`: Storing results and metadata in DuckDB.
+        4. `Fractal Analysis`: Computing fractal dimensionality.
+        5. `Uploading to Storage`: Saving the original image to GCS.
+        6. `Saving to Database`: Storing results and metadata in DuckDB.
     *   `current_step`: (string) The step currently executing.
     *   `completed_steps`: (list) List of completed steps.
     *   `result`: (object, optional) Final result when complete (includes `stats` and `hog_image_url`).
