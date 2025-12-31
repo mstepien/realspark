@@ -14,6 +14,40 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from visualization import create_hog_visualization
 
 from .aiclassifiers import detect_ai
+from .fractaldim import fractal_dimension
+
+def compute_fractal_stats(np_image):
+    """
+    Computes fractal dimensions for the image at different scales:
+    - Default: Full range (2 to M//2)
+    - (commented out) Small: Fine details (2 to M//8)
+    - (commented out) Large: Coarse structure (M//8 to M//2)
+    """
+    # Use grayscale image for FD calculation
+    if np_image.ndim == 3:
+        gray_img = color.rgb2gray(np_image)
+        # Rescale to 0-255 uint8 as the algo expects standard image intensity range
+        gray_img = (gray_img * 255).astype(np.uint8)
+    else:
+        gray_img = np_image
+        
+    M = gray_img.shape[0]
+    limit_small = max(3, M // 8)
+    
+    # Default (Full Range)
+    fd_default = fractal_dimension(gray_img)
+    
+    # Small / Fine Details
+    # fd_small = fractal_dimension(gray_img, min_box=2, max_box=limit_small)
+    
+    # Large / Coarse Structure
+    # fd_large = fractal_dimension(gray_img, min_box=limit_small, max_box=M//2)
+    
+    return {
+        "fd_default": fd_default,
+        # "fd_small": fd_small,
+        # "fd_large": fd_large
+    }
 
 def prepare_image(file_bytes: bytes):
     """
@@ -50,6 +84,7 @@ def analyze_image(file_bytes: bytes):
     image, np_image, width, height, mean_color = prepare_image(file_bytes)
     fd, hog_image_buffer = compute_hog(np_image)
     ai_score = detect_ai(image)
+    fractal_stats = compute_fractal_stats(np_image)
 
     return {
         "width": width,
@@ -57,6 +92,7 @@ def analyze_image(file_bytes: bytes):
         "mean_color": mean_color.tolist(), # [r, g, b]
         "hog_features": fd.tolist(),
         "hog_image_buffer": hog_image_buffer,
-        "ai_probability": ai_score
+        "ai_probability": ai_score,
+        **fractal_stats
     }
 

@@ -156,6 +156,32 @@
             <div id="aiDescription" style="font-size: 18px; color: #555;"></div>
         </div>
 
+        <div id="fractalResultCard" class="card" style="display: none;">
+            <h2 style="text-align: center;">Fractal Dimension Analysis</h2>
+            <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 20px;">
+                <div>
+                    <h3>Default Scale</h3>
+                    <div id="fdDefaultDisplay" style="font-size: 24px; font-weight: bold; color: #3498db;">-</div>
+                    <small>Full Range</small>
+                </div>
+                <!--
+                <div>
+                    <h3>Fine Details</h3>
+                    <div id="fdSmallDisplay" style="font-size: 24px; font-weight: bold; color: #e74c3c;">-</div>
+                    <small>Small Boxes</small>
+                </div>
+                <div>
+                    <h3>Coarse Structure</h3>
+                    <div id="fdLargeDisplay" style="font-size: 24px; font-weight: bold; color: #2ecc71;">-</div>
+                    <small>Large Boxes</small>
+                </div>
+                -->
+            </div>
+            <p style="text-align: center; color: #7f8c8d; margin-top: 20px;">
+                Fractal Dimension (D) typically ranges from 2.0 (smooth surface) to 3.0 (extremely rough/complex).
+            </p>
+        </div>
+
         <div class="card">
             <h2>Statistics Overview</h2>
             <canvas id="statsChart"></canvas>
@@ -355,6 +381,14 @@
                                     aiScore.className = "ai-score-danger";
                                     aiDesc.textContent = "High Likelihood of AI Generation";
                                 }
+                            }
+
+                            // Display Fractal Stats
+                            if (data.stats.fd_default !== undefined) {
+                                document.getElementById('fractalResultCard').style.display = 'block';
+                                document.getElementById('fdDefaultDisplay').textContent = data.stats.fd_default.toFixed(4);
+                                // document.getElementById('fdSmallDisplay').textContent = data.stats.fd_small.toFixed(4);
+                                // document.getElementById('fdLargeDisplay').textContent = data.stats.fd_large.toFixed(4);
                             }
 
                             fetchStats(); // Refresh stats
