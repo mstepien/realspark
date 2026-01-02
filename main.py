@@ -6,6 +6,7 @@ import uvicorn
 from database import init_db, save_stats, get_aggregate_stats
 from storage import upload_to_gcs
 from analysis import prepare_image, compute_hog, detect_ai, compute_fractal_stats
+from analysis.histogram import compute_histogram
 import io
 import os
 import uuid
@@ -24,6 +25,7 @@ def on_startup():
 tasks = {}
 STEPS = [
     "Preprocessing",
+    "Histogram Analysis",
     "HOG Analysis", 
     "AI Classifier",
     "Fractal Analysis",
@@ -44,14 +46,25 @@ async def process_image_task(task_id: str, content: bytes, filename: str):
         
         # Simulate tiny work
         await asyncio.sleep(0.1) 
+        
+        image, np_image, width, height, mean_color = await loop.run_in_executor(None, prepare_image, content)
         tasks[task_id]["completed_steps"].append("Preprocessing")
         
-        # Step 2: HOG Analysis (Weight 5)
+        # Step 2: Histogram Analysis (Weight 2)
+        tasks[task_id]["status"] = "Histogram Analysis..."
+        tasks[task_id]["current_step"] = "Histogram Analysis"
+        tasks[task_id]["progress"] = 8
+        
+        histogram_data = await loop.run_in_executor(None, compute_histogram, np_image)
+        tasks[task_id]["partial_results"].update(histogram_data)
+        tasks[task_id]["completed_steps"].append("Histogram Analysis")
+        tasks[task_id]["progress"] = 12
+        
+        # Step 3: HOG Analysis (Weight 5)
         tasks[task_id]["status"] = "HOG Analysis..."
         tasks[task_id]["current_step"] = "HOG Analysis"
-        tasks[task_id]["progress"] = 10
+        tasks[task_id]["progress"] = 12
 
-        image, np_image, width, height, mean_color = await loop.run_in_executor(None, prepare_image, content)
         fd, hog_image_buffer = await loop.run_in_executor(None, compute_hog, np_image)
 
         # Immediate HOG Visualization Save
@@ -62,22 +75,22 @@ async def process_image_task(task_id: str, content: bytes, filename: str):
         
         tasks[task_id]["partial_results"]["hog_image_url"] = f"/tmp/{hog_filename}"
         tasks[task_id]["completed_steps"].append("HOG Analysis")
-        tasks[task_id]["progress"] = 25
+        tasks[task_id]["progress"] = 28
 
-        # Step 3: AI Classifier (Weight 5)
+        # Step 4: AI Classifier (Weight 5)
         tasks[task_id]["status"] = "AI Classifier..."
         tasks[task_id]["current_step"] = "AI Classifier"
-        tasks[task_id]["progress"] = 25 # Start where previous left off
+        tasks[task_id]["progress"] = 28
 
         ai_score = await loop.run_in_executor(None, detect_ai, image)
         tasks[task_id]["partial_results"]["ai_probability"] = ai_score
         tasks[task_id]["completed_steps"].append("AI Classifier")
-        tasks[task_id]["progress"] = 40
+        tasks[task_id]["progress"] = 45
 
-        # Step 4: Fractal Analysis (Weight 10)
+        # Step 5: Fractal Analysis (Weight 10)
         tasks[task_id]["status"] = "Fractal Analysis..."
         tasks[task_id]["current_step"] = "Fractal Analysis"
-        tasks[task_id]["progress"] = 40
+        tasks[task_id]["progress"] = 45
         
         fractal_stats = await loop.run_in_executor(None, compute_fractal_stats, np_image)
         tasks[task_id]["partial_results"].update(fractal_stats)
