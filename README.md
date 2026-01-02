@@ -106,14 +106,20 @@ The analysis logic is organized into a modular package structure:
     *   `progress`: (int) Progress percentage (0-100).
     *   `steps`: (list) List of total steps:
         1. `Preprocessing`: Basic image loading and metadata extraction.
-        2. `HOG Analysis`: Computing Histogram of Oriented Gradients.
-        3. `AI Classifier`: Running the ViT inference.
-        4. `Fractal Analysis`: Computing fractal dimensionality.
-        5. `Uploading to Storage`: Saving the original image to GCS.
-        6. `Saving to Database`: Storing results and metadata in DuckDB.
+        2. `Histogram Analysis`: Computing RGB color histograms.
+        3. `HOG Analysis`: Computing Histogram of Oriented Gradients.
+        4. `AI Classifier`: Running the ViT inference.
+        5. `Fractal Analysis`: Computing fractal dimensionality.
+        6. `Uploading to Storage`: Saving the original image to GCS.
+        7. `Saving to Database`: Storing results and metadata in DuckDB.
     *   `current_step`: (string) The step currently executing.
     *   `completed_steps`: (list) List of completed steps.
-    *   `result`: (object, optional) Final result when complete (includes `stats` and `hog_image_url`).
+    *   `partial_results`: (object, optional) Real-time results as they become available:
+        *   `histogram_r`, `histogram_g`, `histogram_b`: (arrays) RGB histogram data (256 bins each).
+        *   `hog_image_url`: (string) URL to HOG visualization image.
+        *   `ai_probability`: (float) AI detection probability (0.0-1.0).
+        *   `fd_default`: (float) Fractal dimension value.
+    *   `result`: (object, optional) Final result when complete (includes `id`, `url`, and `stats`).
     *   `error`: (string, optional) Error message if failed.
 
 ### Get Statistics

@@ -182,6 +182,14 @@
             </p>
         </div>
 
+        <div id="histogramCard" class="card" style="display: none;">
+            <h2 style="text-align: center;">Color Histogram</h2>
+            <canvas id="histogramChart"></canvas>
+            <p style="text-align: center; color: #7f8c8d; margin-top: 15px;">
+                Distribution of pixel intensities across RGB channels (0-255).
+            </p>
+        </div>
+
         <div class="card">
             <h2>Statistics Overview</h2>
             <canvas id="statsChart"></canvas>
@@ -271,6 +279,9 @@
             progressBar.textContent = '0%';
             stepList.innerHTML = "";
             stepList.style.display = 'none';
+
+            // Reset histogram chart flag for new upload
+            let histogramRendered = false;
 
             try {
                 // Start upload task
@@ -374,6 +385,83 @@
                             if (taskData.partial_results.fd_default !== undefined) {
                                 document.getElementById('fractalResultCard').style.display = 'block';
                                 document.getElementById('fdDefaultDisplay').textContent = taskData.partial_results.fd_default.toFixed(4);
+                            }
+
+                            // Display Histogram (only once)
+                            if (!histogramRendered && taskData.partial_results.histogram_r && taskData.partial_results.histogram_g && taskData.partial_results.histogram_b) {
+                                const histogramCard = document.getElementById('histogramCard');
+                                histogramCard.style.display = 'block';
+
+                                // Create histogram chart (only once)
+                                const histCtx = document.getElementById('histogramChart').getContext('2d');
+
+                                // Create x-axis labels (0-255)
+                                const labels = Array.from({ length: 256 }, (_, i) => i);
+
+                                window.histogramChart = new Chart(histCtx, {
+                                    type: 'line',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [
+                                            {
+                                                label: 'Red',
+                                                data: taskData.partial_results.histogram_r,
+                                                borderColor: 'rgba(255, 99, 132, 0.8)',
+                                                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                                                borderWidth: 1,
+                                                pointRadius: 0,
+                                                fill: true
+                                            },
+                                            {
+                                                label: 'Green',
+                                                data: taskData.partial_results.histogram_g,
+                                                borderColor: 'rgba(75, 192, 192, 0.8)',
+                                                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                                                borderWidth: 1,
+                                                pointRadius: 0,
+                                                fill: true
+                                            },
+                                            {
+                                                label: 'Blue',
+                                                data: taskData.partial_results.histogram_b,
+                                                borderColor: 'rgba(54, 162, 235, 0.8)',
+                                                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                                                borderWidth: 1,
+                                                pointRadius: 0,
+                                                fill: true
+                                            }
+                                        ]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        scales: {
+                                            x: {
+                                                title: {
+                                                    display: true,
+                                                    text: 'Pixel Intensity (0-255)'
+                                                },
+                                                ticks: {
+                                                    maxTicksLimit: 10
+                                                }
+                                            },
+                                            y: {
+                                                title: {
+                                                    display: true,
+                                                    text: 'Frequency'
+                                                },
+                                                beginAtZero: true
+                                            }
+                                        },
+                                        plugins: {
+                                            legend: {
+                                                display: true,
+                                                position: 'top'
+                                            }
+                                        }
+                                    }
+                                });
+
+                                histogramRendered = true;
                             }
                         }
 
