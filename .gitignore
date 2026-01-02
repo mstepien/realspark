@@ -6,3 +6,7 @@ server.log
 image_stats.duckdb
 venv/
 tmp/*
+package-lock.json
+coverage/coverage-final.json
+node_modules/*
+coverage/*

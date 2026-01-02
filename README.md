@@ -45,22 +45,45 @@ uvicorn main:app --host 0.0.0.0 --port 8080
 
 The application will be available at `http://localhost:8080`.
 
-## How to Run Tests
+### Backend Tests (Python)
 
-The project uses `pytest` for testing. To run the test suite ensuring the correct environment is used:
+The project uses `pytest` for backend testing. To run the test suite:
 
 ```bash
 ./venv/bin/pytest
 ```
 
-Or, if you have already activated your virtual environment:
-
-```bash
-source venv/bin/activate
-pytest
-```
-
 This will execute all tests located in the `tests/` directory.
+
+### Frontend Tests (JavaScript)
+
+The project uses `Jest` for unit testing the frontend logic (validators, renderers, etc.).
+
+**Prerequisites:**
+- **Node.js**: Version 16.0 or higher is required for ES Module support.
+- **npm**: Installed with Node.js.
+
+**Setup and Execution:**
+
+0.  **Select Node.js version**:
+    ```bash
+    nvm use v18.20.8
+    ```
+
+1.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+2.  **Run tests**:
+    ```bash
+    npm test
+    ```
+
+3.  **Run with coverage**:
+    ```bash
+    npm run test:coverage
+    ```
 
 ## How to Use the App
 
