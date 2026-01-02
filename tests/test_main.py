@@ -74,3 +74,41 @@ def test_upload_invalid_file():
     }
     response = client.post("/upload", files=files)
     assert response.status_code == 400
+
+def test_partial_results_flow(mock_db_connection, mock_storage_client):
+    img = Image.new('RGB', (100, 100), color='red')
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format='PNG')
+    img_bytes = img_byte_arr.getvalue()
+    
+    files = {
+        'file': ('partial_test.png', img_bytes, 'image/png')
+    }
+    
+    response = client.post("/upload", files=files)
+    assert response.status_code == 200
+    task_id = response.json()["task_id"]
+    
+    # Poll until we see partial results or completion
+    import time
+    max_retries = 20
+    seen_hog = False
+    
+    for _ in range(max_retries):
+        progress_response = client.get(f"/progress/{task_id}")
+        assert progress_response.status_code == 200
+        task_data = progress_response.json()
+        
+        # Check for partial results if available
+        if "partial_results" in task_data:
+             # Just strict check on structure, values might lag simply due to timing in test
+             if "hog_image_url" in task_data["partial_results"]:
+                seen_hog = True
+                assert task_data["partial_results"]["hog_image_url"].startswith("/tmp/")
+                
+        if task_data.get("status") == "Complete":
+            break
+            
+        time.sleep(0.1)
+        
+    assert seen_hog, "Should have seen HOG image URL in partial results before or at completion"
