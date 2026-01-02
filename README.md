@@ -10,12 +10,11 @@ This application is aimed to count various statistics in uploaded images to deci
 ## Installation
 
 1.  Clone the repository.
-2.  **Create and Activate a Virtual Environment (Required):**
+2.  **Create a virtual environment (optional but recommended):**
     ```bash
     python3 -m venv venv
     source venv/bin/activate
     ```
-    *Note: Always allow the `venv` environment for development and running the app.*
 
 3.  Install the required dependencies:
     ```bash
@@ -88,6 +87,7 @@ Histogram of Oriented Gradients (HOG) analysis is performed to identify structur
 The analysis logic is organized into a modular package structure:
 - `analysis/analysis.py`: Numerical image analysis (HOG, metadata).
 - `analysis/aiclassifiers.py`: AI classification logic and model management.
+- `analysis/fractaldim.py`: Fractal dimensionality.
 
 
 ## API Reference

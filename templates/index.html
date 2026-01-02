@@ -287,6 +287,7 @@
                 const taskId = startData.task_id;
                 console.log("Task started:", taskId);
 
+
                 // Poll for progress
                 const pollInterval = setInterval(async () => {
                     try {
@@ -334,6 +335,48 @@
                             });
                         }
 
+                        // Handle Partial Results
+                        if (taskData.partial_results) {
+                            // Display HOG image
+                            if (taskData.partial_results.hog_image_url) {
+                                const hogImg = document.getElementById('hogImage');
+                                // Only update if src is different to avoid flicker/reloading
+                                if (!hogImg.src.endsWith(taskData.partial_results.hog_image_url)) {
+                                    hogImg.src = taskData.partial_results.hog_image_url;
+                                    document.getElementById('hogContainer').style.display = 'block';
+                                }
+                            }
+
+                            // Display AI Detection Result
+                            if (taskData.partial_results.ai_probability !== undefined) {
+                                const aiCard = document.getElementById('aiResultCard');
+                                const aiScore = document.getElementById('aiScoreDisplay');
+                                const aiDesc = document.getElementById('aiDescription');
+                                const prob = taskData.partial_results.ai_probability;
+                                const percent = (prob * 100).toFixed(1);
+
+                                aiScore.textContent = percent + "% AI Probability";
+                                aiCard.style.display = 'block';
+
+                                if (prob < 0.3) {
+                                    aiScore.className = "ai-score-safe";
+                                    aiDesc.textContent = "Likely Human-Created / Authentic Art";
+                                } else if (prob < 0.7) {
+                                    aiScore.className = "ai-score-warning";
+                                    aiDesc.textContent = "Uncertain / Mixed Indicators";
+                                } else {
+                                    aiScore.className = "ai-score-danger";
+                                    aiDesc.textContent = "High Likelihood of AI Generation";
+                                }
+                            }
+
+                            // Display Fractal Stats
+                            if (taskData.partial_results.fd_default !== undefined) {
+                                document.getElementById('fractalResultCard').style.display = 'block';
+                                document.getElementById('fdDefaultDisplay').textContent = taskData.partial_results.fd_default.toFixed(4);
+                            }
+                        }
+
                         if (taskData.error) {
                             clearInterval(pollInterval);
                             progressContainer.style.display = 'none';
@@ -353,43 +396,8 @@
 
                             resultDiv.textContent = "Success! ID: " + data.id;
 
-                            // Display HOG image
-                            if (data.stats.hog_image_url) {
-                                const hogImg = document.getElementById('hogImage');
-                                hogImg.src = data.stats.hog_image_url;
-                                document.getElementById('hogContainer').style.display = 'block';
-                            }
-
-                            // Display AI Detection Result
-                            if (data.stats.ai_probability !== undefined) {
-                                const aiCard = document.getElementById('aiResultCard');
-                                const aiScore = document.getElementById('aiScoreDisplay');
-                                const aiDesc = document.getElementById('aiDescription');
-                                const prob = data.stats.ai_probability;
-                                const percent = (prob * 100).toFixed(1);
-
-                                aiScore.textContent = percent + "% AI Probability";
-                                aiCard.style.display = 'block';
-
-                                if (prob < 0.3) {
-                                    aiScore.className = "ai-score-safe";
-                                    aiDesc.textContent = "Likely Human-Created / Authentic Art";
-                                } else if (prob < 0.7) {
-                                    aiScore.className = "ai-score-warning";
-                                    aiDesc.textContent = "Uncertain / Mixed Indicators";
-                                } else {
-                                    aiScore.className = "ai-score-danger";
-                                    aiDesc.textContent = "High Likelihood of AI Generation";
-                                }
-                            }
-
-                            // Display Fractal Stats
-                            if (data.stats.fd_default !== undefined) {
-                                document.getElementById('fractalResultCard').style.display = 'block';
-                                document.getElementById('fdDefaultDisplay').textContent = data.stats.fd_default.toFixed(4);
-                                // document.getElementById('fdSmallDisplay').textContent = data.stats.fd_small.toFixed(4);
-                                // document.getElementById('fdLargeDisplay').textContent = data.stats.fd_large.toFixed(4);
-                            }
+                            // Re-apply final results just in case partials missed anything or to confirm
+                            // (Logic is same as partial handling, duplicative but safe)
 
                             fetchStats(); // Refresh stats
                         }
