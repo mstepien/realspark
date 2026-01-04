@@ -1,6 +1,6 @@
 import pytest
 import io
-from storage import upload_to_gcs
+from app.storage import upload_to_gcs
 
 @pytest.mark.asyncio
 async def test_upload_to_gcs_mock(mock_storage_client):
@@ -22,7 +22,7 @@ async def test_upload_to_gcs_mock(mock_storage_client):
 @pytest.mark.asyncio
 async def test_upload_no_client(monkeypatch):
     # Simulate no GCS client (local mode)
-    monkeypatch.setattr("storage.storage_client", None)
+    monkeypatch.setattr("app.storage.storage_client", None)
     
     file_content = b"data"
     file_obj = io.BytesIO(file_content)

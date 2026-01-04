@@ -3,10 +3,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
-from database import init_db, save_stats, get_aggregate_stats
-from storage import upload_to_gcs
-from analysis import prepare_image, compute_hog, detect_ai, compute_fractal_stats
-from analysis.histogram import compute_histogram
+from app.database import init_db, save_stats, get_aggregate_stats
+from app.storage import upload_to_gcs
+from app.analysis import prepare_image, compute_hog, detect_ai, compute_fractal_stats
+from app.analysis.histogram import compute_histogram
 import io
 import os
 import uuid
@@ -14,9 +14,10 @@ import asyncio
 
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/tmp", StaticFiles(directory="tmp"), name="tmp")
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="app/templates")
 
 @app.on_event("startup")
 def on_startup():

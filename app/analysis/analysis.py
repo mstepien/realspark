@@ -7,11 +7,7 @@ import io
 ***REMOVED***
 import os
 
-# Ensure we can import from the parent directory if needed, 
-# but usually root is in path.
-#Expose  analyze_image for backward compatibility with from analysis import analyze_image.
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from visualization import create_hog_visualization
+from app.visualization import create_hog_visualization
 
 from .aiclassifiers import detect_ai
 from .fractaldim import fractal_dimension

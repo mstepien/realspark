@@ -1,6 +1,6 @@
 import pytest
 from PIL import Image
-from analysis.aiclassifiers import detect_ai
+from app.analysis.aiclassifiers import detect_ai
 
 def test_detect_ai_unit():
     # Mocked to return 0.1 for 'AI' label in conftest

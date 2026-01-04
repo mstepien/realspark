@@ -21,6 +21,23 @@ This application is aimed to count various statistics in uploaded images to deci
     pip install -r requirements.txt
     ```
 
+## Project Structure
+```text
+.
+├── app/                      # Main application package
+│   ├── main.py               # FastAPI entry point
+│   ├── database.py           # Database management
+│   ├── storage.py            # GCS interaction
+│   ├── visualization.py      # HOG/Image visualization
+│   ├── analysis/             # Analysis sub-package
+│   ├── static/               # CSS, JS modules
+│   └── templates/            # HTML templates
+├── tests/                    # Backend/Frontend tests
+├── Dockerfile
+├── docker-compose.yml
+└── requirements.txt
+```
+
 ## How to Run the App
 
 You can run the application using `uvicorn` directly or via the provided helper script.
@@ -40,7 +57,7 @@ Logs will be written to `server.log`.
 To start the application manually:
 
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8080
+uvicorn app.main:app --host 0.0.0.0 --port 8080
 ```
 
 The application will be available at `http://localhost:8080`.

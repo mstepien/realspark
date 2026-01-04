@@ -20,10 +20,10 @@
         "testEnvironment": "jsdom",
         "transform": {},
         "testMatch": [
-            "**/static/tests/**/*.test.js"
+            "**/app/static/tests/**/*.test.js"
         ],
         "collectCoverageFrom": [
-            "static/js/modules/**/*.js"
+            "app/static/js/modules/**/*.js"
         ],
         "coverageThreshold": {
             "global": {

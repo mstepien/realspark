@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from analysis.fractaldim import fractal_dimension
+from app.analysis.fractaldim import fractal_dimension
 
 def test_fractaldim_zeros():
     # A completely empty image

@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 import io
-from analysis import analyze_image
+from app.analysis import analyze_image
 
 def test_analyze_image_gradient():
     # Create a 2x2 image

@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from PIL import Image
 import io
-from analysis import analyze_image
+from app.analysis import analyze_image
 
 def test_analyze_image_valid():
     # Create a simple 100x100 red image

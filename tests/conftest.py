@@ -43,7 +43,7 @@ def mock_db_connection(monkeypatch):
         # We want to share the SAME in-memory db.
         return con.cursor() 
 
-    monkeypatch.setattr("database.get_db_connection", mock_get_conn)
+    monkeypatch.setattr("app.database.get_db_connection", mock_get_conn)
     
     yield con
     con.close()
@@ -62,7 +62,7 @@ def mock_storage_client(monkeypatch):
     mock_blob.public_url = "https://mock-storage.com/test-image.jpg"
     
     # Patch the storage_client in storage.py
-    monkeypatch.setattr("storage.storage_client", mock_client)
+    monkeypatch.setattr("app.storage.storage_client", mock_client)
     
     return mock_client
 
@@ -80,5 +80,5 @@ def mock_transformers(monkeypatch):
     def mock_get_pipeline(*args, **kwargs):
         return mock_pipeline
         
-    monkeypatch.setattr("analysis.aiclassifiers.pipeline", mock_get_pipeline)
+    monkeypatch.setattr("app.analysis.aiclassifiers.pipeline", mock_get_pipeline)
     return mock_pipeline
