@@ -85,6 +85,56 @@ The project uses `Jest` for unit testing the frontend logic (validators, rendere
     npm run test:coverage
     ```
 
+## Deploy with Docker
+
+You can easily deploy the application using Docker. This ensures all dependencies are correctly managed and provided.
+
+### Prerequisites
+- Docker installed
+- Docker Compose (optional but recommended)
+
+### Option 1: Using Docker Compose (Recommended)
+
+This method sets up volumes for persisting the database and model cache.
+
+1.  **Start the application**:
+    ```bash
+    docker-compose up -d
+    ```
+
+2.  **View logs**:
+    ```bash
+    docker-compose logs -f
+    ```
+
+3.  **Stop the application**:
+    ```bash
+    docker-compose down
+    ```
+
+### Option 2: Using Docker directly
+
+1.  **Build the image**:
+    ```bash
+    docker build -t image-analysis-app .
+    ```
+
+2.  **Run the container**:
+    ```bash
+    docker run -p 8080:8080 image-analysis-app
+    ```
+
+### Docker Volume Mapping
+If running with `docker-compose`, the following volumes are mapped to persist data:
+- `data/`: Persists the analysis history (`image_stats.duckdb`). Mounting the directory allows for data locking and temporary files required by DuckDB.
+- `tmp/`: Persists generated HOG visualizations.
+- `cache/transformers/`: Persists the AI model weights to avoid downloading them on every restart.
+
+### Environment Variables
+You can pass environment variables to the container for custom configuration (e.g., in `docker-compose.yml` or using `-e` flag):
+- `GCS_BUCKET_NAME`: Set your Google Cloud Storage bucket name.
+- `GOOGLE_APPLICATION_CREDENTIALS`: Path to your service account JSON file (ensure the file is also mounted as a volume).
+
 ## How to Use the App
 
 1.  **Web Interface**:

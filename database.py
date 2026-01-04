@@ -1,7 +1,8 @@
 import duckdb
 import uuid
+import os
 
-DB_PATH = "image_stats.duckdb"
+DB_PATH = os.environ.get("DATABASE_PATH", "image_stats.duckdb")
 
 def get_db_connection():
     con = duckdb.connect(DB_PATH)

@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - data_volume:/app/data
+      - tmp_volume:/app/tmp
+      - cache_volume:/app/cache/transformers
+    environment:
+      - DATABASE_PATH=/app/data/image_stats.duckdb
+    restart: always
+
+volumes:
+  data_volume:
+  tmp_volume:
+  cache_volume:
+
+
+networks:
+  default:
+    name: image-analysis-network

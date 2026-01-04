@@ -3,7 +3,8 @@ uvicorn
 google-cloud-storage
 duckdb
 pillow
-numpy
+#numpy 2.0  has breaking changes as dependency for opencv-python-headles
+numpy<2.0.0
 jinja2
 python-multipart
 pytest
@@ -16,7 +17,6 @@ matplotlib
 
 #ai classifier, models
 transformers
-torch
 
 #histogram analysis
 opencv-python-headless==4.5.5.64
