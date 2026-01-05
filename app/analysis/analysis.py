@@ -4,7 +4,6 @@ from skimage.transform import resize
 from PIL import Image
 import numpy as np
 import io
-***REMOVED***
 import os
 
 from app.visualization import create_hog_visualization
