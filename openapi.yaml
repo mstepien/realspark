@@ -1,0 +1,155 @@
+openapi: 3.1.0
+info:
+  title: Image Analysis API
+  version: 1.0.0
+  description: API for uploading images, tracking analysis progress, and retrieving statistics.
+
+paths:
+  /upload:
+    post:
+      summary: Upload an image for analysis
+      operationId: startUpload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Upload successful, task started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '400':
+          description: Invalid file type
+  
+  /progress/{task_id}:
+    get:
+      summary: Get the status of an image analysis task
+      operationId: getTaskStatus
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskStatus'
+        '404':
+          description: Task not found
+
+  /stats:
+    get:
+      summary: Get aggregate statistics of analyzed images
+      operationId: getStats
+      responses:
+        '200':
+          description: Aggregate stats retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateStats'
+
+components:
+  schemas:
+    UploadResponse:
+      type: object
+      properties:
+        task_id:
+          type: string
+      required:
+        - task_id
+
+    TaskStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        progress:
+          type: integer
+        steps:
+          type: array
+          items:
+            type: string
+        current_step:
+          type: string
+          nullable: true
+        completed_steps:
+          type: array
+          items:
+            type: string
+        partial_results:
+          type: object
+          additionalProperties: true
+          nullable: true
+        result:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            url:
+              type: string
+            stats:
+              $ref: '#/components/schemas/ImageStats'
+        error:
+          type: string
+          nullable: true
+      required:
+        - status
+        - progress
+        - steps
+        - completed_steps
+
+    ImageStats:
+      type: object
+      properties:
+        width:
+          type: integer
+        height:
+          type: integer
+        mean_color:
+          type: array
+          items:
+            type: number
+        hog_features:
+          type: array
+          items:
+            type: number
+        ai_probability:
+          type: number
+        hog_image_url:
+          type: string
+        fractal_dimension:
+          type: number
+        fractal_dim_small:
+          type: number
+        fractal_dim_large:
+          type: number
+
+    AggregateStats:
+      type: object
+      properties:
+        total_images:
+          type: integer
+        avg_width:
+          type: number
+        avg_height:
+          type: number
+        avg_color:
+          type: array
+          items:
+            type: number
+      required:
+        - total_images

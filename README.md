@@ -26,13 +26,17 @@ This application is aimed to count various statistics in uploaded images to deci
 .
 ├── app/                      # Main application package
 │   ├── main.py               # FastAPI entry point
+│   ├── models.py             # Generated Pydantic models [GENERATED]
 │   ├── database.py           # Database management
 │   ├── storage.py            # GCS interaction
 │   ├── visualization.py      # HOG/Image visualization
 │   ├── analysis/             # Analysis sub-package
 │   ├── static/               # CSS, JS modules
+│   │   └── js/client/        # Generated JS Client SDK [GENERATED]
 │   └── templates/            # HTML templates
 ├── tests/                    # Backend/Frontend tests
+├── openapi.yaml              # OpenAPI specification
+├── generate-api.sh           # API code generation script
 ├── Dockerfile
 ├── docker-compose.yml
 └── requirements.txt
@@ -102,6 +106,31 @@ The project uses `Jest` for unit testing the frontend logic (validators, rendere
     npm run test:coverage
     ```
 
+## API Code Generation
+
+The project utilizes an **OpenAPI-driven development** workflow. The central source of truth for the API is `openapi.yaml`.
+
+### When to run generation
+You **must** run the generation script whenever you modify the API definition in `openapi.yaml`. This ensures that:
+- **Backend**: Pydantic models in `app/models.py` are synchronized.
+- **Frontend**: The JavaScript Client SDK in `app/static/js/client/` is updated with new endpoints or data structures.
+
+### How to run generation
+The easiest way is to use the provided `npm` script:
+
+```bash
+npm run generate-api
+```
+
+Alternatively, run the bash script:
+```bash
+bash generate-api.sh
+```
+
+**Prerequisites:**
+- **Python**: `datamodel-code-generator` (installed automatically in `venv`)
+- **Node.js**: `@openapitools/openapi-generator-cli`
+
 ## Deploy with Docker
 
 You can easily deploy the application using Docker. This ensures all dependencies are correctly managed and provided.
@@ -114,7 +143,16 @@ You can easily deploy the application using Docker. This ensures all dependencie
 
 This method sets up volumes for persisting the database and model cache.
 
-1.  **Start the application**:
+0.  **Generate API (optional)**:
+    ```bash
+    npm run generate-api
+    ```
+
+1.  **Build and start the application**:
+    ```bash
+    docker-compose up -d --build
+    ```
+    or just start the application:
     ```bash
     docker-compose up -d
     ```

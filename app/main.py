@@ -11,6 +11,7 @@ import io
 import os
 import uuid
 import asyncio
+from app.models import UploadResponse, TaskStatus, AggregateStats
 
 app = FastAPI()
 
@@ -158,7 +159,7 @@ async def process_image_task(task_id: str, content: bytes, filename: str):
 async def read_root(request: Request):
     return templates.TemplateResponse(request=request, name="index.html")
 
-@app.post("/upload")
+@app.post("/upload", response_model=UploadResponse)
 async def start_upload(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
@@ -178,13 +179,13 @@ async def start_upload(background_tasks: BackgroundTasks, file: UploadFile = Fil
     
     return {"task_id": task_id}
 
-@app.get("/progress/{task_id}")
+@app.get("/progress/{task_id}", response_model=TaskStatus)
 async def get_task_status(task_id: str):
     if task_id not in tasks:
         raise HTTPException(status_code=404, detail="Task not found")
     return tasks[task_id]
 
-@app.get("/stats")
+@app.get("/stats", response_model=AggregateStats)
 def get_stats():
     return get_aggregate_stats()
 
