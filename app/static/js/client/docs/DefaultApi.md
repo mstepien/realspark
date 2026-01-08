@@ -105,6 +105,7 @@ import ImageAnalysisApi from 'image_analysis_api';
 
 let apiInstance = new ImageAnalysisApi.DefaultApi();
 let opts = {
+  'sessionId': "sessionId_example", // String | Session ID for tracking and abandoning previous tasks.
   'file': "/path/to/file" // File | 
 };
 apiInstance.startUpload(opts, (error, data, response) => {
@@ -121,6 +122,7 @@ apiInstance.startUpload(opts, (error, data, response) => {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
+ **sessionId** | **String**| Session ID for tracking and abandoning previous tasks. | [optional] 
  **file** | **File**|  | [optional] 
 
 ### Return type

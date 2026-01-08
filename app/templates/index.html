@@ -128,6 +128,28 @@
         .ai-score-danger {
             color: #c0392b;
         }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .step-icon.running {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            color: #3498db;
+        }
+
+        .step-icon.timed-out {
+            color: #f39c12;
+            /* Orange */
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -164,18 +186,6 @@
                     <div id="fdDefaultDisplay" style="font-size: 24px; font-weight: bold; color: #3498db;">-</div>
                     <small>Full Range</small>
                 </div>
-                <!--
-                <div>
-                    <h3>Fine Details</h3>
-                    <div id="fdSmallDisplay" style="font-size: 24px; font-weight: bold; color: #e74c3c;">-</div>
-                    <small>Small Boxes</small>
-                </div>
-                <div>
-                    <h3>Coarse Structure</h3>
-                    <div id="fdLargeDisplay" style="font-size: 24px; font-weight: bold; color: #2ecc71;">-</div>
-                    <small>Large Boxes</small>
-                </div>
-                -->
             </div>
             <p style="text-align: center; color: #7f8c8d; margin-top: 20px;">
                 Fractal Dimension (D) typically ranges from 2.0 (smooth surface) to 3.0 (extremely rough/complex).
@@ -216,6 +226,7 @@
     <script>
         const ctx = document.getElementById('statsChart').getContext('2d');
         let chart;
+        let activePollInterval = null;
 
         async function fetchStats() {
             try {
@@ -265,6 +276,13 @@
 
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Clear existing polling if any
+            if (activePollInterval) {
+                clearInterval(activePollInterval);
+                activePollInterval = null;
+            }
+
             const formData = new FormData(e.target);
             const resultDiv = document.getElementById('uploadResult');
             const progressContainer = document.getElementById('progressContainer');
@@ -280,8 +298,30 @@
             stepList.innerHTML = "";
             stepList.style.display = 'none';
 
+            // Clean up previous results
+            document.getElementById('aiResultCard').style.display = 'none';
+            document.getElementById('aiScoreDisplay').textContent = '';
+            document.getElementById('aiDescription').textContent = '';
+
+            document.getElementById('fractalResultCard').style.display = 'none';
+            document.getElementById('fdDefaultDisplay').textContent = '-';
+
+            document.getElementById('histogramCard').style.display = 'none';
+
+            document.getElementById('hogContainer').style.display = 'none';
+            document.getElementById('hogImage').src = '';
+
+            document.getElementById('debugContainer').style.display = 'none';
+            document.getElementById('debugOutput').textContent = '';
+
             // Reset histogram chart flag for new upload
             let histogramRendered = false;
+
+            // Destroy existing histogram chart if it exists
+            if (window.histogramChartInstance && typeof window.histogramChartInstance.destroy === 'function') {
+                window.histogramChartInstance.destroy();
+                window.histogramChartInstance = null;
+            }
 
             try {
                 // Start upload task
@@ -300,7 +340,7 @@
 
 
                 // Poll for progress
-                const pollInterval = setInterval(async () => {
+                activePollInterval = setInterval(async () => {
                     try {
                         const progressResponse = await fetch('/progress/' + taskId);
                         if (!progressResponse.ok) return;
@@ -311,12 +351,49 @@
                         const progress = taskData.progress || 0;
                         progressBar.style.width = progress + '%';
                         progressBar.textContent = progress + '%';
-                        statusText.textContent = taskData.status;
 
-                        // Render steps if available
+                        // Calculate detailed status
+                        const timedOutList = taskData.timed_out_steps || [];
+                        const completedList = taskData.completed_steps || [];
+                        // Success = completed but not timed out
+                        const successCount = completedList.filter(s => !timedOutList.includes(s)).length;
+                        const timedOutCount = timedOutList.length;
+                        let errorCount = (taskData.status === 'Error') ? 1 : 0;
+
+                        // Special case: Preprocessing timeout (shows as Error but is a timeout)
+                        if (taskData.error && taskData.error.includes("timed out") && timedOutCount === 0) {
+                            // Treat as 1 timeout, 0 errors for display purpose if preferred, 
+                            // but strictly it's an error status with a message. 
+                            // The user asked "do not display 'Error' when one of STEPS has timeouted".
+                            // Assuming this refers to the 'timed_out_steps' list population.
+                            // If Preprocessing dies, we might not have steps list populated well.
+                            // We'll stick to the list-based logic mostly, but if status is Error and we have timeouts in list, assume that's what they mean.
+                        }
+
+                        let statusDisplay = taskData.status;
+
+                        if (taskData.status === 'Complete' || taskData.status === 'Error' || timedOutCount > 0) {
+                            statusDisplay = `Success: ${successCount}, Timed Out: ${timedOutCount}, Errors: ${errorCount}`;
+                            if (timedOutCount > 0) {
+                                statusDisplay += ` (Timeout: 10s)`;
+                            }
+                            if (taskData.status === 'Error' && errorCount > 0 && timedOutCount === 0) {
+                                // If it's a pure error without step timeouts, maybe keep original or append?
+                                // User said: "do not display 'Error' when one of STEPS has timeouted".
+                                // So if timedOutCount > 0, we use the summary.
+                                // If timedOutCount == 0 and status is Error, we probably show Error?
+                                // Let's show the summary + message from error object if needed, but prompt implies specific format.
+                                // If errorCount > 0, we show "Errors: 1".
+                            }
+                        }
+
+                        statusText.textContent = statusDisplay;
+
                         if (taskData.steps) {
                             stepList.style.display = 'block';
-                            stepList.innerHTML = ''; // Re-render logic is simple but inefficient, good enough for now
+                            stepList.innerHTML = '';
+
+                            const parallelSteps = ["Histogram Analysis", "HOG Analysis", "AI Classifier", "Fractal Analysis", "Uploading to Storage"];
 
                             taskData.steps.forEach(step => {
                                 const li = document.createElement('li');
@@ -328,15 +405,33 @@
                                 const textSpan = document.createElement('span');
                                 textSpan.textContent = step;
 
-                                if (taskData.completed_steps && taskData.completed_steps.includes(step)) {
-                                    iconSpan.textContent = '✓'; // Green Tick
+                                const isCompleted = taskData.completed_steps && taskData.completed_steps.includes(step);
+
+                                // Determine if running or timed out
+                                let isRunning = false;
+                                let isTimedOut = taskData.timed_out_steps && taskData.timed_out_steps.includes(step);
+
+                                if (!isCompleted && !isTimedOut) {
+                                    if (taskData.current_step === step) {
+                                        isRunning = true;
+                                    } else if (taskData.current_step === "Parallel Analysis & Upload" && parallelSteps.includes(step)) {
+                                        isRunning = true;
+                                    }
+                                }
+
+                                if (isTimedOut) {
+                                    iconSpan.textContent = '🕒';
+                                    iconSpan.classList.add('timed-out');
+                                    iconSpan.title = "Step timed out";
+                                } else if (isCompleted) {
+                                    iconSpan.textContent = '✓';
                                     iconSpan.classList.add('done');
-                                } else if (taskData.current_step === step) {
-                                    iconSpan.textContent = '➤'; // Arrow/Spinner placeholder
-                                    iconSpan.classList.add('active');
+                                } else if (isRunning) {
+                                    iconSpan.textContent = '↻';
+                                    iconSpan.classList.add('running');
                                     textSpan.style.fontWeight = 'bold';
                                 } else {
-                                    iconSpan.textContent = '•'; // Grey Dot
+                                    iconSpan.textContent = '•';
                                     iconSpan.classList.add('pending');
                                 }
 
@@ -359,7 +454,19 @@
                             }
 
                             // Display AI Detection Result
-                            if (taskData.partial_results.ai_probability !== undefined) {
+                            const aiStepName = "AI Classifier";
+                            const isAiTimedOut = taskData.timed_out_steps && taskData.timed_out_steps.includes(aiStepName);
+
+                            if (isAiTimedOut) {
+                                const aiCard = document.getElementById('aiResultCard');
+                                const aiScore = document.getElementById('aiScoreDisplay');
+                                const aiDesc = document.getElementById('aiDescription');
+
+                                aiCard.style.display = 'block';
+                                aiScore.textContent = "Timed Out";
+                                aiScore.style.color = '#f39c12'; // Orange warning color
+                                aiDesc.textContent = "Analysis timed out.";
+                            } else if (taskData.partial_results.ai_probability !== undefined && taskData.partial_results.ai_probability !== null) {
                                 const aiCard = document.getElementById('aiResultCard');
                                 const aiScore = document.getElementById('aiScoreDisplay');
                                 const aiDesc = document.getElementById('aiDescription');
@@ -369,67 +476,69 @@
                                 aiScore.textContent = percent + "% AI Probability";
                                 aiCard.style.display = 'block';
 
-                                if (prob < 0.3) {
-                                    aiScore.className = "ai-score-safe";
-                                    aiDesc.textContent = "Likely Human-Created / Authentic Art";
-                                } else if (prob < 0.7) {
-                                    aiScore.className = "ai-score-warning";
-                                    aiDesc.textContent = "Uncertain / Mixed Indicators";
+                                // Color coding based on probability
+                                if (prob < 0.2) {
+                                    aiScore.style.color = '#27ae60'; // Safe
+                                    aiDesc.textContent = "Likely Human-Created";
+                                } else if (prob < 0.8) {
+                                    aiScore.style.color = '#f39c12'; // Warning
+                                    aiDesc.textContent = "Uncertain / Mixed";
                                 } else {
-                                    aiScore.className = "ai-score-danger";
-                                    aiDesc.textContent = "High Likelihood of AI Generation";
+                                    aiScore.style.color = '#c0392b'; // Danger
+                                    aiDesc.textContent = "Likely AI-Generated";
                                 }
                             }
 
                             // Display Fractal Stats
-                            if (taskData.partial_results.fd_default !== undefined) {
+                            if (taskData.timed_out_steps && taskData.timed_out_steps.includes('Fractal Analysis')) {
                                 document.getElementById('fractalResultCard').style.display = 'block';
-                                document.getElementById('fdDefaultDisplay').textContent = taskData.partial_results.fd_default.toFixed(4);
+                                document.getElementById('fdDefaultDisplay').textContent = "Timed Out";
+                            } else if (taskData.partial_results.hasOwnProperty('fd_default')) {
+                                document.getElementById('fractalResultCard').style.display = 'block';
+                                const val = taskData.partial_results.fd_default;
+                                if (val !== null && val !== undefined) {
+                                    document.getElementById('fdDefaultDisplay').textContent = Number(val).toFixed(4);
+                                } else {
+                                    document.getElementById('fdDefaultDisplay').textContent = "N/A";
+                                }
                             }
 
                             // Display Histogram (only once)
                             if (!histogramRendered && taskData.partial_results.histogram_r && taskData.partial_results.histogram_g && taskData.partial_results.histogram_b) {
                                 const histogramCard = document.getElementById('histogramCard');
                                 histogramCard.style.display = 'block';
-
-                                // Create histogram chart (only once)
-                                const histCtx = document.getElementById('histogramChart').getContext('2d');
-
-                                // Create x-axis labels (0-255)
-                                const labels = Array.from({ length: 256 }, (_, i) => i);
-
-                                window.histogramChart = new Chart(histCtx, {
+                                const ctxInst = document.getElementById('histogramChart').getContext('2d');
+                                window.histogramChartInstance = new Chart(ctxInst, {
                                     type: 'line',
                                     data: {
-                                        labels: labels,
-                                        datasets: [
-                                            {
-                                                label: 'Red',
-                                                data: taskData.partial_results.histogram_r,
-                                                borderColor: 'rgba(255, 99, 132, 0.8)',
-                                                backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                                                borderWidth: 1,
-                                                pointRadius: 0,
-                                                fill: true
-                                            },
-                                            {
-                                                label: 'Green',
-                                                data: taskData.partial_results.histogram_g,
-                                                borderColor: 'rgba(75, 192, 192, 0.8)',
-                                                backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                                                borderWidth: 1,
-                                                pointRadius: 0,
-                                                fill: true
-                                            },
-                                            {
-                                                label: 'Blue',
-                                                data: taskData.partial_results.histogram_b,
-                                                borderColor: 'rgba(54, 162, 235, 0.8)',
-                                                backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                                                borderWidth: 1,
-                                                pointRadius: 0,
-                                                fill: true
-                                            }
+                                        labels: Array.from({ length: 256 }, (_, i) => i),
+                                        datasets: [{
+                                            label: 'Red',
+                                            data: taskData.partial_results.histogram_r,
+                                            borderColor: 'rgba(255, 99, 132, 0.8)',
+                                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                                            borderWidth: 1,
+                                            pointRadius: 0,
+                                            fill: true
+                                        },
+                                        {
+                                            label: 'Green',
+                                            data: taskData.partial_results.histogram_g,
+                                            borderColor: 'rgba(75, 192, 192, 0.8)',
+                                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                                            borderWidth: 1,
+                                            pointRadius: 0,
+                                            fill: true
+                                        },
+                                        {
+                                            label: 'Blue',
+                                            data: taskData.partial_results.histogram_b,
+                                            borderColor: 'rgba(54, 162, 235, 0.8)',
+                                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                                            borderWidth: 1,
+                                            pointRadius: 0,
+                                            fill: true
+                                        }
                                         ]
                                     },
                                     options: {
@@ -465,13 +574,29 @@
                             }
                         }
 
-                        if (taskData.error) {
-                            clearInterval(pollInterval);
+                        if (taskData.status === "Abandoned") {
+                            clearInterval(activePollInterval);
+                            activePollInterval = null;
                             progressContainer.style.display = 'none';
-                            stepList.style.display = 'none';
+                            // stepList.style.display = 'none';
+                            resultDiv.textContent = "Previous task was abandoned.";
+                            resultDiv.className = "error";
+                            return;
+                        }
+
+                        if (taskData.error) {
+                            clearInterval(activePollInterval);
+                            activePollInterval = null;
+                            progressContainer.style.display = 'none';
+                            // stepList.style.display = 'none';
                             resultDiv.textContent = "Error: " + taskData.error;
-                        } else if (progress >= 100 && taskData.result) {
-                            clearInterval(pollInterval);
+                            resultDiv.className = "error";
+                            return;
+                        }
+
+                        if (taskData.status === "Complete") {
+                            clearInterval(activePollInterval);
+                            activePollInterval = null;
 
                             // Success!
                             const data = taskData.result;
@@ -485,14 +610,12 @@
                             resultDiv.textContent = "Success! ID: " + data.id;
 
                             // Re-apply final results just in case partials missed anything or to confirm
-                            // (Logic is same as partial handling, duplicative but safe)
-
                             fetchStats(); // Refresh stats
                         }
                     } catch (e) {
                         console.error("Polling error", e);
                     }
-                }, 500); // Poll every 500ms
+                }, 200); // Poll every 200ms
 
             } catch (err) {
                 progressContainer.style.display = 'none';

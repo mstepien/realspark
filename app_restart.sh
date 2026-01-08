@@ -11,4 +11,5 @@ NEW_PID=$!
 echo "Application started with PID: $NEW_PID"
 echo "Logs are being written to server.log"
 echo "Tailing logs for 5 seconds..."
-#timeout 5 tail -f server.log
+#timeout 5 
+#tail -f server.log

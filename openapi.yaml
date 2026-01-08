@@ -9,6 +9,12 @@ paths:
     post:
       summary: Upload an image for analysis
       operationId: startUpload
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          description: Session ID for tracking and abandoning previous tasks.
       requestBody:
         required: true
         content:
@@ -22,6 +28,11 @@ paths:
       responses:
         '200':
           description: Upload successful, task started
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: session_id=abc; Path=/; HttpOnly
           content:
             application/json:
               schema:
@@ -76,6 +87,7 @@ components:
       properties:
         status:
           type: string
+          description: Current status (Starting..., Preprocessing..., Performing Parallel Analysis & Upload..., Saving to Database..., Complete, Error, Abandoned)
         progress:
           type: integer
         steps:
@@ -106,6 +118,7 @@ components:
         error:
           type: string
           nullable: true
+          description: Error message if the task failed (e.g., due to analysis error or process timeout).
       required:
         - status
         - progress
@@ -131,12 +144,9 @@ components:
           type: number
         hog_image_url:
           type: string
-        fractal_dimension:
+        fd_default:
           type: number
-        fractal_dim_small:
-          type: number
-        fractal_dim_large:
-          type: number
+          description: Fractal dimension calculated over the full box range.
 
     AggregateStats:
       type: object

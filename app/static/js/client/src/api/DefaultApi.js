@@ -125,6 +125,7 @@ export default class DefaultApi {
     /**
      * Upload an image for analysis
      * @param {Object} opts Optional parameters
+     * @param {String} [sessionId] Session ID for tracking and abandoning previous tasks.
      * @param {File} [file] 
      * @param {module:api/DefaultApi~startUploadCallback} callback The callback function, accepting three arguments: error, data, response
      * data is of type: {@link module:model/UploadResponse}

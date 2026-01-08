@@ -65,14 +65,8 @@ class ImageStats {
             if (data.hasOwnProperty('hog_image_url')) {
                 obj['hog_image_url'] = ApiClient.convertToType(data['hog_image_url'], 'String');
             }
-            if (data.hasOwnProperty('fractal_dimension')) {
-                obj['fractal_dimension'] = ApiClient.convertToType(data['fractal_dimension'], 'Number');
-            }
-            if (data.hasOwnProperty('fractal_dim_small')) {
-                obj['fractal_dim_small'] = ApiClient.convertToType(data['fractal_dim_small'], 'Number');
-            }
-            if (data.hasOwnProperty('fractal_dim_large')) {
-                obj['fractal_dim_large'] = ApiClient.convertToType(data['fractal_dim_large'], 'Number');
+            if (data.hasOwnProperty('fd_default')) {
+                obj['fd_default'] = ApiClient.convertToType(data['fd_default'], 'Number');
             }
         }
         return obj;
@@ -136,19 +130,10 @@ ImageStats.prototype['ai_probability'] = undefined;
 ImageStats.prototype['hog_image_url'] = undefined;
 
 /**
- * @member {Number} fractal_dimension
+ * Fractal dimension calculated over the full box range.
+ * @member {Number} fd_default
  */
-ImageStats.prototype['fractal_dimension'] = undefined;
-
-/**
- * @member {Number} fractal_dim_small
- */
-ImageStats.prototype['fractal_dim_small'] = undefined;
-
-/**
- * @member {Number} fractal_dim_large
- */
-ImageStats.prototype['fractal_dim_large'] = undefined;
+ImageStats.prototype['fd_default'] = undefined;
 
 
 

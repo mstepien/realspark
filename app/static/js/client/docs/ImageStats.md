@@ -10,8 +10,6 @@ Name | Type | Description | Notes
 **hogFeatures** | **[Number]** |  | [optional] 
 **aiProbability** | **Number** |  | [optional] 
 **hogImageUrl** | **String** |  | [optional] 
-**fractalDimension** | **Number** |  | [optional] 
-**fractalDimSmall** | **Number** |  | [optional] 
-**fractalDimLarge** | **Number** |  | [optional] 
+**fdDefault** | **Number** | Fractal dimension calculated over the full box range. | [optional] 
 
 

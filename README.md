@@ -108,28 +108,30 @@ The project uses `Jest` for unit testing the frontend logic (validators, rendere
 
 ## API Code Generation
 
-The project utilizes an **OpenAPI-driven development** workflow. The central source of truth for the API is `openapi.yaml`.
+The project utilizes an **OpenAPI-driven development** workflow. The central source of truth for the API is `openapi.yaml`. 
 
 ### When to run generation
-You **must** run the generation script whenever you modify the API definition in `openapi.yaml`. This ensures that:
-- **Backend**: Pydantic models in `app/models.py` are synchronized.
-- **Frontend**: The JavaScript Client SDK in `app/static/js/client/` is updated with new endpoints or data structures.
+You **must** run the generation script whenever you modify the API definition in `openapi.yaml`. This is essential because:
+- **Backend (Python)**: The Pydantic models in `app/models.py` are automatically updated to match the latest schema. These models are used throughout `app/main.py`.
+- **Frontend (JavaScript)**: The Client SDK in `app/static/js/client/` is regenerated. Using the SDK ensures that the UI always uses the correct endpoints and data types, preventing runtime errors.
 
 ### How to run generation
 The easiest way is to use the provided `npm` script:
 
+**Recommended Method (npm):**
 ```bash
 npm run generate-api
 ```
 
-Alternatively, run the bash script:
+**Alternative (Bash):**
 ```bash
 bash generate-api.sh
 ```
 
-**Prerequisites:**
-- **Python**: `datamodel-code-generator` (installed automatically in `venv`)
-- **Node.js**: `@openapitools/openapi-generator-cli`
+### Underlying Tools
+- **Python Models**: Generated using `datamodel-code-generator` (installed automatically in `venv`). It parses `openapi.yaml` and produces `app/models.py`.
+- **JavaScript Client**: Generated using `@openapitools/openapi-generator-cli`. 
+
 
 ## Deploy with Docker
 

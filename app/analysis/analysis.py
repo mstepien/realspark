@@ -18,13 +18,21 @@ def compute_fractal_stats(np_image):
     - (commented out) Small: Fine details (2 to M//8)
     - (commented out) Large: Coarse structure (M//8 to M//2)
     """
+    # Resize to a smaller standard size for performance (Fractal Dim calculation is expensive)
+    # Resizing to 256x256 ensures reasonable execution time while maintaining statistical validity.
+    resized_img = resize(np_image, (256, 256), anti_aliasing=True)
+
     # Use grayscale image for FD calculation
-    if np_image.ndim == 3:
-        gray_img = color.rgb2gray(np_image)
+    if resized_img.ndim == 3:
+        gray_img = color.rgb2gray(resized_img)
         # Rescale to 0-255 uint8 as the algo expects standard image intensity range
         gray_img = (gray_img * 255).astype(np.uint8)
     else:
-        gray_img = np_image
+        # If already grayscale, ensure it is 0-255 uint8
+        if resized_img.dtype != np.uint8:
+             gray_img = (resized_img * 255).astype(np.uint8)
+        else:
+             gray_img = resized_img
         
     M = gray_img.shape[0]
     limit_small = max(3, M // 8)

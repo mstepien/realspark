@@ -1,15 +1,23 @@
 from transformers import pipeline
 from PIL import Image
 
+from threading import Lock
+
 # Lazy loading of AI classifier
 _ai_classifier = None
+_lock = Lock()
 
 def get_ai_classifier():
     global _ai_classifier
-    if _ai_classifier is None:
-        # Use a high-quality AI image detector
-        _ai_classifier = pipeline("image-classification", model="Ateeqq/ai-vs-human-image-detector")
+    with _lock:
+        if _ai_classifier is None:
+            # Use a high-quality AI image detector
+            # This might download >500MB on first run
+            _ai_classifier = pipeline("image-classification", model="Ateeqq/ai-vs-human-image-detector")
     return _ai_classifier
+
+def warmup_classifier():
+    get_ai_classifier()
 
 def detect_ai(image: Image.Image):
     """

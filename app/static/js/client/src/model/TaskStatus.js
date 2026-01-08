@@ -23,7 +23,7 @@ class TaskStatus {
     /**
      * Constructs a new <code>TaskStatus</code>.
      * @alias module:model/TaskStatus
-     * @param status {String} 
+     * @param status {String} Current status (Starting..., Preprocessing..., Performing Parallel Analysis & Upload..., Saving to Database..., Complete, Error, Abandoned)
      * @param progress {Number} 
      * @param steps {Array.<String>} 
      * @param completedSteps {Array.<String>} 
@@ -130,6 +130,7 @@ class TaskStatus {
 TaskStatus.RequiredProperties = ["status", "progress", "steps", "completed_steps"];
 
 /**
+ * Current status (Starting..., Preprocessing..., Performing Parallel Analysis & Upload..., Saving to Database..., Complete, Error, Abandoned)
  * @member {String} status
  */
 TaskStatus.prototype['status'] = undefined;
@@ -165,6 +166,7 @@ TaskStatus.prototype['partial_results'] = undefined;
 TaskStatus.prototype['result'] = undefined;
 
 /**
+ * Error message if the task failed (e.g., due to analysis error or process timeout).
  * @member {String} error
  */
 TaskStatus.prototype['error'] = undefined;
