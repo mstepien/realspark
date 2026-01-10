@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **steps** | **[String]** |  | 
 **currentStep** | **String** |  | [optional] 
 **completedSteps** | **[String]** |  | 
+**timedOutSteps** | **[String]** | List of steps that timed out during analysis. | 
 **partialResults** | **{String: Object}** |  | [optional] 
 **result** | [**TaskStatusResult**](TaskStatusResult.md) |  | [optional] 
 **error** | **String** | Error message if the task failed (e.g., due to analysis error or process timeout). | [optional] 

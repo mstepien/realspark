@@ -4,8 +4,8 @@ datamodel-code-generator
 google-cloud-storage
 duckdb
 pillow
-#numpy 2.0  has breaking changes as dependency for opencv-python-headles
-numpy<2.0.0
+#numpy 2.0 had breaking changes as dependency for opencv-python-headles
+numpy
 jinja2
 python-multipart
 pytest
@@ -20,4 +20,8 @@ matplotlib
 transformers
 
 #histogram analysis
-opencv-python-headless==4.5.5.64
+opencv-python-headless
+
+#frontend integration testing
+playwright
+pytest-playwright

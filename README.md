@@ -4,7 +4,7 @@ This application is aimed to count various statistics in uploaded images to deci
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.10.x, 3.11.x, or 3.12.x
 - pip
 
 ## Installation
@@ -27,19 +27,29 @@ This application is aimed to count various statistics in uploaded images to deci
 ├── app/                      # Main application package
 │   ├── main.py               # FastAPI entry point
 │   ├── models.py             # Generated Pydantic models [GENERATED]
-│   ├── database.py           # Database management
+│   ├── database.py           # Database management (DuckDB)
 │   ├── storage.py            # GCS interaction
 │   ├── visualization.py      # HOG/Image visualization
 │   ├── analysis/             # Analysis sub-package
-│   ├── static/               # CSS, JS modules
+│   │   ├── analysis.py       # Numerical image analysis
+│   │   ├── aiclassifiers.py  # AI classification logic (ViT)
+│   │   ├── fractaldim.py     # Fractal dimension computation
+│   │   └── histogram.py      # Color histogram computation
+│   ├── static/               # Frontend assets
 │   │   └── js/client/        # Generated JS Client SDK [GENERATED]
-│   └── templates/            # HTML templates
-├── tests/                    # Backend/Frontend tests
+│   └── templates/            # Jinja2 HTML templates
+├── tests/                    # Test suite
+│   └── ...
+├── data/                     # Local data storage (DuckDB files)
+├── tmp/                      # Temporary file storage
+├── cache/                    # Local cache (AI model weights)
 ├── openapi.yaml              # OpenAPI specification
 ├── generate-api.sh           # API code generation script
-├── Dockerfile
-├── docker-compose.yml
-└── requirements.txt
+├── pytest.ini                # Pytest configuration
+├── package.json              # Node.js dependencies/scripts
+├── Dockerfile                # Docker image definition
+├── docker-compose.yml        # Docker composition
+└── requirements.txt          # Python dependencies
 ```
 
 ## How to Run the App
@@ -105,6 +115,67 @@ The project uses `Jest` for unit testing the frontend logic (validators, rendere
     ```bash
     npm run test:coverage
     ```
+
+### Frontend Integration Tests (Playwright)
+
+The project uses **Playwright** for browser-based integration testing of the complete upload and analysis workflow.
+
+**Prerequisites:**
+- **Python 3.10-3.12** (Python 3.13+ has compatibility issues with numpy<2.0).
+- Python virtual environment activated
+- Playwright browsers installed
+
+**Setup (One-time):**
+
+1.  **Ensure you're using the correct Python version**:
+    ```bash
+    python3 --version  # Should show 3.10.x, 3.11.x, or 3.12.x
+    ```
+
+2.  **Install Python dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3.  **Install Playwright browsers**:
+    ```bash
+    playwright install chromium
+    ```
+
+**Running Frontend Integration Tests:**
+
+1.  **Run all frontend integration tests** (headless mode):
+    ```bash
+    pytest tests/test_frontend_integration.py -v
+    ```
+
+2.  **Run with visible browser** (for debugging):
+    ```bash
+    pytest tests/test_frontend_integration.py -v --headed
+    ```
+
+3.  **Run a specific test**:
+    ```bash
+    pytest tests/test_frontend_integration.py::test_upload_displays_all_steps -v
+    ```
+
+4.  **Run all tests** (backend + frontend):
+    ```bash
+    pytest -v
+    ```
+
+**What the Frontend Integration Tests Cover:**
+- ✅ All execution steps are displayed after upload
+- ✅ Parallel step execution indicators (running state)
+- ✅ Progressive display of partial results (HOG, AI, Fractal, Histogram)
+- ✅ Final results display with all cards visible
+- ✅ Step progression sequence and status indicators
+- ✅ UI element visibility flow
+- ✅ Timeout handling with clock icons (🕒)
+- ✅ Multiple timeouts displayed correctly
+- ✅ Error handling and error messages
+- ✅ Invalid file upload rejection
+
 
 ## API Code Generation
 

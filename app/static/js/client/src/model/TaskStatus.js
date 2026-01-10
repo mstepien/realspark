@@ -27,10 +27,11 @@ class TaskStatus {
      * @param progress {Number} 
      * @param steps {Array.<String>} 
      * @param completedSteps {Array.<String>} 
+     * @param timedOutSteps {Array.<String>} List of steps that timed out during analysis.
      */
-    constructor(status, progress, steps, completedSteps) { 
+    constructor(status, progress, steps, completedSteps, timedOutSteps) { 
         
-        TaskStatus.initialize(this, status, progress, steps, completedSteps);
+        TaskStatus.initialize(this, status, progress, steps, completedSteps, timedOutSteps);
     }
 
     /**
@@ -38,11 +39,12 @@ class TaskStatus {
      * This method is used by the constructors of any subclasses, in order to implement multiple inheritance (mix-ins).
      * Only for internal use.
      */
-    static initialize(obj, status, progress, steps, completedSteps) { 
+    static initialize(obj, status, progress, steps, completedSteps, timedOutSteps) { 
         obj['status'] = status;
         obj['progress'] = progress;
         obj['steps'] = steps;
         obj['completed_steps'] = completedSteps;
+        obj['timed_out_steps'] = timedOutSteps;
     }
 
     /**
@@ -70,6 +72,9 @@ class TaskStatus {
             }
             if (data.hasOwnProperty('completed_steps')) {
                 obj['completed_steps'] = ApiClient.convertToType(data['completed_steps'], ['String']);
+            }
+            if (data.hasOwnProperty('timed_out_steps')) {
+                obj['timed_out_steps'] = ApiClient.convertToType(data['timed_out_steps'], ['String']);
             }
             if (data.hasOwnProperty('partial_results')) {
                 obj['partial_results'] = ApiClient.convertToType(data['partial_results'], {'String': Object});
@@ -112,6 +117,10 @@ class TaskStatus {
         if (!Array.isArray(data['completed_steps'])) {
             throw new Error("Expected the field `completed_steps` to be an array in the JSON data but got " + data['completed_steps']);
         }
+        // ensure the json data is an array
+        if (!Array.isArray(data['timed_out_steps'])) {
+            throw new Error("Expected the field `timed_out_steps` to be an array in the JSON data but got " + data['timed_out_steps']);
+        }
         // validate the optional field `result`
         if (data['result']) { // data not null
           TaskStatusResult.validateJSON(data['result']);
@@ -127,7 +136,7 @@ class TaskStatus {
 
 }
 
-TaskStatus.RequiredProperties = ["status", "progress", "steps", "completed_steps"];
+TaskStatus.RequiredProperties = ["status", "progress", "steps", "completed_steps", "timed_out_steps"];
 
 /**
  * Current status (Starting..., Preprocessing..., Performing Parallel Analysis & Upload..., Saving to Database..., Complete, Error, Abandoned)
@@ -154,6 +163,12 @@ TaskStatus.prototype['current_step'] = undefined;
  * @member {Array.<String>} completed_steps
  */
 TaskStatus.prototype['completed_steps'] = undefined;
+
+/**
+ * List of steps that timed out during analysis.
+ * @member {Array.<String>} timed_out_steps
+ */
+TaskStatus.prototype['timed_out_steps'] = undefined;
 
 /**
  * @member {Object.<String, Object>} partial_results

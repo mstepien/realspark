@@ -1,14 +1,13 @@
-import pytest
 import io
 from app.storage import upload_to_gcs
+from tests.conftest import run_async
 
-@pytest.mark.asyncio
-async def test_upload_to_gcs_mock(mock_storage_client):
+def test_upload_to_gcs_mock(mock_storage_client):
     file_content = b"fake image data"
     file_obj = io.BytesIO(file_content)
     filename = "test.jpg"
     
-    url = await upload_to_gcs(file_obj, filename)
+    url = run_async(upload_to_gcs(file_obj, filename))
     
     assert url == "https://mock-storage.com/test-image.jpg"
     
@@ -19,15 +18,14 @@ async def test_upload_to_gcs_mock(mock_storage_client):
     mock_blob = mock_bucket.blob.return_value
     mock_blob.upload_from_file.assert_called()
 
-@pytest.mark.asyncio
-async def test_upload_no_client(monkeypatch):
+def test_upload_no_client(monkeypatch):
     # Simulate no GCS client (local mode)
     monkeypatch.setattr("app.storage.storage_client", None)
     
     file_content = b"data"
     file_obj = io.BytesIO(file_content)
     
-    url = await upload_to_gcs(file_obj, "local.jpg")
+    url = run_async(upload_to_gcs(file_obj, "local.jpg"))
     
     assert "https://storage.googleapis.com/" in url
     assert "local.jpg" in url

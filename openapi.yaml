@@ -101,6 +101,11 @@ components:
           type: array
           items:
             type: string
+        timed_out_steps:
+          type: array
+          items:
+            type: string
+          description: List of steps that timed out during analysis.
         partial_results:
           type: object
           additionalProperties: true
@@ -124,28 +129,36 @@ components:
         - progress
         - steps
         - completed_steps
+        - timed_out_steps
 
     ImageStats:
       type: object
       properties:
         width:
           type: integer
+          nullable: true
         height:
           type: integer
+          nullable: true
         mean_color:
           type: array
           items:
             type: number
+          nullable: true
         hog_features:
           type: array
           items:
             type: number
+          nullable: true
         ai_probability:
           type: number
+          nullable: true
         hog_image_url:
           type: string
+          nullable: true
         fd_default:
           type: number
+          nullable: true
           description: Fractal dimension calculated over the full box range.
 
     AggregateStats:
@@ -155,11 +168,14 @@ components:
           type: integer
         avg_width:
           type: number
+          nullable: true
         avg_height:
           type: number
+          nullable: true
         avg_color:
           type: array
           items:
             type: number
+          nullable: true
       required:
         - total_images
