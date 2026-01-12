@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 from app.database import init_db, save_stats, get_aggregate_stats
 from app.storage import upload_to_gcs
-from app.analysis import prepare_image, compute_hog, detect_ai, compute_fractal_stats
+from app.analysis import prepare_image, compute_hog, detect_ai, compute_fractal_stats, extract_metadata
 from app.analysis.histogram import compute_histogram
 import io
 import os
@@ -37,6 +37,7 @@ executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
 STEP_TIMEOUT = 90 # seconds for each individual step
 STEPS = [
     "Preprocessing",
+    "Metadata Analysis",
     "Histogram Analysis",
     "HOG Analysis", 
     "AI Classifier",
@@ -159,18 +160,33 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                     tasks[task_id]["timed_out_steps"].append("Uploading to Storage")
                     return None
 
+            async def run_metadata():
+                try:
+                    meta_analysis = await asyncio.wait_for(
+                        loop.run_in_executor(executor, extract_metadata, image),
+                        timeout=STEP_TIMEOUT
+                    )
+                    tasks[task_id]["partial_results"]["metadata_analysis"] = meta_analysis
+                    tasks[task_id]["completed_steps"].append("Metadata Analysis")
+                    return meta_analysis
+                except asyncio.TimeoutError:
+                    logger.warning(f"Metadata analysis timed out for task {task_id}")
+                    tasks[task_id]["timed_out_steps"].append("Metadata Analysis")
+                    return {"tags": {}, "description": "Analysis timed out.", "is_suspicious": False}
+
             # Execute parallel tasks
-            res_hist, res_hog, res_ai, res_frac, res_upload = await asyncio.gather(
+            res_hist, res_hog, res_ai, res_frac, res_upload, res_meta = await asyncio.gather(
                 run_histogram(),
                 run_hog(),
                 run_ai(),
                 run_fractal(),
                 run_upload(),
+                run_metadata(),
                 return_exceptions=True
             )
 
             # Check for errors in parallel cluster
-            for result in [res_hist, res_hog, res_ai, res_frac, res_upload]:
+            for result in [res_hist, res_hog, res_ai, res_frac, res_upload, res_meta]:
                 if isinstance(result, Exception):
                     raise result
 
@@ -178,6 +194,7 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
             ai_score = res_ai
             fractal_stats = res_frac
             url = res_upload
+            metadata_analysis = res_meta
 
             analysis_results = {
                 "width": width,
@@ -186,7 +203,8 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                 "hog_features": fd if isinstance(fd, list) else fd.tolist(),
                 "hog_image_buffer": hog_image_buffer,
                 "ai_probability": ai_score,
-                **fractal_stats
+                **fractal_stats,
+                "metadata_analysis": metadata_analysis
             }
             tasks[task_id]["progress"] = 85
 

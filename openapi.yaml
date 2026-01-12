@@ -160,6 +160,21 @@ components:
           type: number
           nullable: true
           description: Fractal dimension calculated over the full box range.
+        metadata_analysis:
+          type: object
+          nullable: true
+          properties:
+            tags:
+              type: object
+              additionalProperties:
+                type: string
+              description: Key-value pairs of extracted metadata tags.
+            description:
+              type: string
+              description: A summary or analysis of the metadata findings.
+            is_suspicious:
+              type: boolean
+          description: Results of the image metadata examination.
 
     AggregateStats:
       type: object

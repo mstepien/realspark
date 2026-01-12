@@ -1,6 +1,5 @@
 import sys
 import os
-# Removed: os.environ["TESTING"] = "true"
 
 import pytest
 import duckdb
@@ -48,30 +47,29 @@ def mock_db_connection():
     # Use in-memory DB
     con = duckdb.connect(":memory:")
     
-    # Initialize schema
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS image_stats (
-            id VARCHAR,
-            filename VARCHAR,
-            upload_time TIMESTAMP,
-            width INTEGER,
-            height INTEGER,
-            mean_color_r DOUBLE,
-            mean_color_g DOUBLE,
-            mean_color_b DOUBLE,
-            url VARCHAR,
-            hog_features FLOAT[]
-        )
-    """)
-    
+    class DuckDBWrapper:
+        def __init__(self, conn):
+            self._conn = conn
+        def __getattr__(self, name):
+            return getattr(self._conn, name)
+        def close(self):
+            # Ignore close() calls for the shared in-memory connection
+            pass
+
+    wrapper = DuckDBWrapper(con)
+
     @contextlib.contextmanager
     def mock_get_conn():
-        yield con
+        yield wrapper
 
-    # Manual patch
+    # Manual patch BEFORE init_db()
     import app.database
     original_get_conn = app.database.get_db_connection
     app.database.get_db_connection = mock_get_conn
+
+    # Initialize schema using the real app logic on the patched connection
+    from app.database import init_db
+    init_db()
     
     yield con
     
@@ -139,7 +137,7 @@ class MockControl:
         self.errors = {}
         self.return_values = {}
 
-    def get_delay(self, name, default=1.5):
+    def get_delay(self, name, default=0.1):
         return self.delays.get(name, default)
 
     def trigger_error(self, name):
@@ -209,8 +207,19 @@ def mock_analysis_functions():
         'compute_hog': app.main.compute_hog,
         'detect_ai': app.main.detect_ai,
         'compute_fractal_stats': app.main.compute_fractal_stats,
-        'compute_histogram': app.main.compute_histogram
+        'compute_histogram': app.main.compute_histogram,
+        'extract_metadata': app.main.extract_metadata
     }
+
+    def mock_metadata(img):
+        mock_control.trigger_error("metadata")
+        time.sleep(mock_control.get_delay("metadata"))
+        return mock_control.get_return("metadata_analysis", {
+            "tags": {"Software": "MockAuth"},
+            "description": "Metadata found (1 tags), no clear AI signatures detected.",
+            "is_suspicious": False,
+            "software": "MockAuth"
+        })
 
     def with_logging(name, func):
         def wrapper(*args, **kwargs):
@@ -228,6 +237,7 @@ def mock_analysis_functions():
     app.main.detect_ai = app.analysis.detect_ai = with_logging("ai", mock_detect_ai)
     app.main.compute_fractal_stats = app.analysis.compute_fractal_stats = with_logging("fractal", mock_fractal)
     app.main.compute_histogram = app.analysis.histogram.compute_histogram = with_logging("histogram", mock_histogram)
+    app.main.extract_metadata = app.analysis.extract_metadata = with_logging("metadata", mock_metadata)
 
     yield
 
@@ -237,6 +247,7 @@ def mock_analysis_functions():
     app.main.detect_ai = originals['detect_ai']
     app.main.compute_fractal_stats = originals['compute_fractal_stats']
     app.main.compute_histogram = originals['compute_histogram']
+    app.main.extract_metadata = originals['extract_metadata']
 
 @pytest.fixture(scope="session")
 def live_server():

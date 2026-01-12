@@ -12,6 +12,7 @@
  */
 
 import ApiClient from '../ApiClient';
+import ImageStatsMetadataAnalysis from './ImageStatsMetadataAnalysis';
 
 /**
  * The ImageStats model module.
@@ -68,6 +69,9 @@ class ImageStats {
             if (data.hasOwnProperty('fd_default')) {
                 obj['fd_default'] = ApiClient.convertToType(data['fd_default'], 'Number');
             }
+            if (data.hasOwnProperty('metadata_analysis')) {
+                obj['metadata_analysis'] = ImageStatsMetadataAnalysis.constructFromObject(data['metadata_analysis']);
+            }
         }
         return obj;
     }
@@ -89,6 +93,10 @@ class ImageStats {
         // ensure the json data is a string
         if (data['hog_image_url'] && !(typeof data['hog_image_url'] === 'string' || data['hog_image_url'] instanceof String)) {
             throw new Error("Expected the field `hog_image_url` to be a primitive type in the JSON string but got " + data['hog_image_url']);
+        }
+        // validate the optional field `metadata_analysis`
+        if (data['metadata_analysis']) { // data not null
+          ImageStatsMetadataAnalysis.validateJSON(data['metadata_analysis']);
         }
 
         return true;
@@ -134,6 +142,11 @@ ImageStats.prototype['hog_image_url'] = undefined;
  * @member {Number} fd_default
  */
 ImageStats.prototype['fd_default'] = undefined;
+
+/**
+ * @member {module:model/ImageStatsMetadataAnalysis} metadata_analysis
+ */
+ImageStats.prototype['metadata_analysis'] = undefined;
 
 
 

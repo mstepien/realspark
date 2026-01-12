@@ -15,6 +15,7 @@
 import ApiClient from './ApiClient';
 import AggregateStats from './model/AggregateStats';
 import ImageStats from './model/ImageStats';
+import ImageStatsMetadataAnalysis from './model/ImageStatsMetadataAnalysis';
 import TaskStatus from './model/TaskStatus';
 import TaskStatusResult from './model/TaskStatusResult';
 import UploadResponse from './model/UploadResponse';
@@ -70,6 +71,12 @@ export {
      * @property {module:model/ImageStats}
      */
     ImageStats,
+
+    /**
+     * The ImageStatsMetadataAnalysis model constructor.
+     * @property {module:model/ImageStatsMetadataAnalysis}
+     */
+    ImageStatsMetadataAnalysis,
 
     /**
      * The TaskStatus model constructor.

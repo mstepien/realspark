@@ -124,16 +124,26 @@ def test_partial_results_flow(mock_db_connection, mock_storage_client):
             
             # Poll until we see partial results or completion
             seen_hog = False
+            seen_metadata = False
             for _ in range(100):
                 res = await client.get(f"/progress/{task_id}")
                 data = res.json()
-                if "partial_results" in data and data["partial_results"].get("hog_image_url"):
-                    seen_hog = True
+                if "partial_results" in data:
+                    if data["partial_results"].get("hog_image_url"):
+                        seen_hog = True
+                    if data["partial_results"].get("metadata_analysis"):
+                        seen_metadata = True
                 if data.get("status") == "Complete":
                     break
                 await asyncio.sleep(0.01)
                 
             assert seen_hog, "Should have seen hog_image_url in partial results"
+            assert seen_metadata, "Should have seen metadata_analysis in partial results"
+            
+            # Final result check
+            res = await client.get(f"/progress/{task_id}")
+            final_data = res.json()
+            assert "metadata_analysis" in final_data["result"]["stats"]
     run_async(run())
 
 def test_task_abandonment_logic(mock_db_connection, mock_storage_client):

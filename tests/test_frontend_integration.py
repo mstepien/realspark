@@ -55,6 +55,7 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
     # Verify all 7 steps are displayed
     expected_steps = [
         "Preprocessing",
+        "Metadata Analysis",
         "Histogram Analysis",
         "HOG Analysis",
         "AI Classifier",
@@ -72,10 +73,15 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
         expect(step_element).to_be_visible()
 
 
-def test_parallel_steps_show_running_state(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client):
+def test_parallel_steps_show_running_state(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
     """
     Test that parallel steps show running indicators during execution.
     """
+    control.reset()
+    # Set a longer delay for some steps to ensure we catch them running
+    control.delays["metadata"] = 1.0
+    control.delays["ai"] = 1.0
+    
     page.goto(live_server)
     
     # Upload an image
@@ -91,6 +97,7 @@ def test_parallel_steps_show_running_state(page: Page, live_server: str, test_im
     # Wait for parallel analysis phase
     # We should see multiple steps with running indicators (↻)
     parallel_steps = [
+        "Metadata Analysis",
         "Histogram Analysis",
         "HOG Analysis",
         "AI Classifier",
@@ -152,6 +159,13 @@ def test_partial_results_display_progressively(page: Page, live_server: str, tes
     # Wait for and verify Histogram card appears
     histogram_card = page.locator("#histogramCard")
     expect(histogram_card).to_be_visible(timeout=10000)
+    
+    # Wait for and verify Metadata card appears
+    metadata_card = page.locator("#metadataResultCard")
+    expect(metadata_card).to_be_visible(timeout=10000)
+    
+    metadata_desc = page.locator("#metadataDescription")
+    expect(metadata_desc).not_to_be_empty()
 
 
 def test_final_results_display(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
@@ -180,11 +194,12 @@ def test_final_results_display(page: Page, live_server: str, test_image_bytes: b
     expect(page.locator("#fractalResultCard")).to_be_visible()
     expect(page.locator("#histogramCard")).to_be_visible()
     expect(page.locator("#hogContainer")).to_be_visible()
+    expect(page.locator("#metadataResultCard")).to_be_visible()
     expect(page.locator("#debugContainer")).to_be_visible()
     
     # Verify all steps show completion checkmarks
     completed_icons = page.locator('.step-icon.done')
-    expect(completed_icons).to_have_count(7)
+    expect(completed_icons).to_have_count(8)
     
     # Verify AI probability is displayed
     ai_score = page.locator("#aiScoreDisplay")
@@ -248,6 +263,7 @@ def test_ui_elements_visibility_flow(page: Page, live_server: str, test_image_by
     expect(page.locator("#fractalResultCard")).not_to_be_visible()
     expect(page.locator("#histogramCard")).not_to_be_visible()
     expect(page.locator("#hogContainer")).not_to_be_visible()
+    expect(page.locator("#metadataResultCard")).not_to_be_visible()
     
     # Upload an image
     file_input = page.locator('input[type="file"]')
@@ -271,6 +287,7 @@ def test_ui_elements_visibility_flow(page: Page, live_server: str, test_image_by
     expect(page.locator("#fractalResultCard")).to_be_visible(timeout=10000)
     expect(page.locator("#histogramCard")).to_be_visible(timeout=10000)
     expect(page.locator("#hogContainer")).to_be_visible(timeout=10000)
+    expect(page.locator("#metadataResultCard")).to_be_visible(timeout=10000)
     
     # Wait for completion
     expect(page.locator("#uploadResult")).to_contain_text("Success!", timeout=15000)

@@ -178,6 +178,18 @@
             <div id="aiDescription" style="font-size: 18px; color: #555;"></div>
         </div>
 
+        <div id="metadataResultCard" class="card" style="display: none;">
+            <h2 style="text-align: center;">Metadata Analysis</h2>
+            <div id="metadataDescription"
+                style="font-size: 18px; margin-bottom: 15px; text-align: center; font-weight: 500;"></div>
+            <div id="metadataTags"
+                style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tbody id="metadataTagsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div id="fractalResultCard" class="card" style="display: none;">
             <h2 style="text-align: center;">Fractal Dimension Analysis</h2>
             <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 20px;">
@@ -311,6 +323,10 @@
             document.getElementById('hogContainer').style.display = 'none';
             document.getElementById('hogImage').src = '';
 
+            document.getElementById('metadataResultCard').style.display = 'none';
+            document.getElementById('metadataDescription').textContent = '';
+            document.getElementById('metadataTagsBody').innerHTML = '';
+
             document.getElementById('debugContainer').style.display = 'none';
             document.getElementById('debugOutput').textContent = '';
 
@@ -393,7 +409,7 @@
                             stepList.style.display = 'block';
                             stepList.innerHTML = '';
 
-                            const parallelSteps = ["Histogram Analysis", "HOG Analysis", "AI Classifier", "Fractal Analysis", "Uploading to Storage"];
+                            const parallelSteps = ["Metadata Analysis", "Histogram Analysis", "HOG Analysis", "AI Classifier", "Fractal Analysis", "Uploading to Storage"];
 
                             taskData.steps.forEach(step => {
                                 const li = document.createElement('li');
@@ -500,6 +516,30 @@
                                     document.getElementById('fdDefaultDisplay').textContent = Number(val).toFixed(4);
                                 } else {
                                     document.getElementById('fdDefaultDisplay').textContent = "N/A";
+                                }
+                            }
+
+                            // Display Metadata Stats
+                            if (taskData.timed_out_steps && taskData.timed_out_steps.includes('Metadata Analysis')) {
+                                document.getElementById('metadataResultCard').style.display = 'block';
+                                document.getElementById('metadataDescription').textContent = "Analysis timed out.";
+                                document.getElementById('metadataDescription').style.color = '#f39c12';
+                            } else if (taskData.partial_results.metadata_analysis) {
+                                const meta = taskData.partial_results.metadata_analysis;
+                                document.getElementById('metadataResultCard').style.display = 'block';
+                                const descEl = document.getElementById('metadataDescription');
+                                descEl.textContent = meta.description || "Analysis complete.";
+                                descEl.style.color = meta.is_suspicious ? '#c0392b' : '#27ae60';
+
+                                if (meta.tags) {
+                                    const body = document.getElementById('metadataTagsBody');
+                                    body.innerHTML = '';
+                                    Object.entries(meta.tags).sort().forEach(([key, val]) => {
+                                        const row = document.createElement('tr');
+                                        row.innerHTML = `<td style="padding: 4px; border-bottom: 1px solid #f9f9f9; color: #666; width: 40%;">${key}</td>
+                                                         <td style="padding: 4px; border-bottom: 1px solid #f9f9f9;">${val}</td>`;
+                                        body.appendChild(row);
+                                    });
                                 }
                             }
 

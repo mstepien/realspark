@@ -129,6 +129,7 @@ Class | Method | HTTP request | Description
 
  - [ImageAnalysisApi.AggregateStats](docs/AggregateStats.md)
  - [ImageAnalysisApi.ImageStats](docs/ImageStats.md)
+ - [ImageAnalysisApi.ImageStatsMetadataAnalysis](docs/ImageStatsMetadataAnalysis.md)
  - [ImageAnalysisApi.TaskStatus](docs/TaskStatus.md)
  - [ImageAnalysisApi.TaskStatusResult](docs/TaskStatusResult.md)
  - [ImageAnalysisApi.UploadResponse](docs/UploadResponse.md)
