@@ -175,6 +175,23 @@ components:
             is_suspicious:
               type: boolean
           description: Results of the image metadata examination.
+        art_medium_analysis:
+          type: object
+          nullable: true
+          properties:
+            medium:
+              type: string
+            confidence:
+              type: number
+            consistency_score:
+              type: number
+            description:
+              type: string
+            labels_weighted:
+              type: object
+              additionalProperties:
+                type: number
+          description: Results of the DINOv2 and CLIP basis art medium analysis.
 
     AggregateStats:
       type: object

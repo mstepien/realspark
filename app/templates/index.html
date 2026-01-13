@@ -190,6 +190,14 @@
             </div>
         </div>
 
+        <div id="artMediumResultCard" class="card" style="display: none; text-align: center;">
+            <h2>Artistic Medium Analysis</h2>
+            <div id="artMediumDisplay" style="font-size: 28px; font-weight: bold; margin: 15px 0; color: #8e44ad;">
+            </div>
+            <div id="artMediumDescription"
+                style="font-size: 16px; color: #555; background: #f9f9f9; padding: 10px; border-radius: 4px;"></div>
+        </div>
+
         <div id="fractalResultCard" class="card" style="display: none;">
             <h2 style="text-align: center;">Fractal Dimension Analysis</h2>
             <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 20px;">
@@ -541,6 +549,18 @@
                                         body.appendChild(row);
                                     });
                                 }
+                            }
+
+                            // Display Art Medium Stats
+                            if (taskData.timed_out_steps && taskData.timed_out_steps.includes('Art Medium Analysis')) {
+                                document.getElementById('artMediumResultCard').style.display = 'block';
+                                document.getElementById('artMediumDisplay').textContent = "Timed Out";
+                                document.getElementById('artMediumDescription').textContent = "Analysis timed out.";
+                            } else if (taskData.partial_results.art_medium) {
+                                const art = taskData.partial_results.art_medium;
+                                document.getElementById('artMediumResultCard').style.display = 'block';
+                                document.getElementById('artMediumDisplay').textContent = art.medium + " (" + (art.confidence * 100).toFixed(1) + "%)";
+                                document.getElementById('artMediumDescription').textContent = art.description || "";
                             }
 
                             // Display Histogram (only once)

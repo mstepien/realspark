@@ -198,6 +198,17 @@ def mock_analysis_functions():
         time.sleep(mock_control.get_delay("histogram"))
         return {"histogram_r": [10]*256, "histogram_g": [20]*256, "histogram_b": [30]*256}
 
+    def mock_art_medium(img):
+        mock_control.trigger_error("art_medium")
+        time.sleep(mock_control.get_delay("art_medium"))
+        return mock_control.get_return("art_medium_results", {
+            "medium": "Oil",
+            "confidence": 0.9,
+            "consistency_score": 0.4,
+            "description": "Mock Oil description.",
+            "labels_weighted": {"Oil": 0.9, "Watercolor": 0.1}
+        })
+
     import app.main
     import app.analysis
     import app.analysis.histogram
@@ -208,7 +219,8 @@ def mock_analysis_functions():
         'detect_ai': app.main.detect_ai,
         'compute_fractal_stats': app.main.compute_fractal_stats,
         'compute_histogram': app.main.compute_histogram,
-        'extract_metadata': app.main.extract_metadata
+        'extract_metadata': app.main.extract_metadata,
+        'analyze_art_medium': app.main.analyze_art_medium
     }
 
     def mock_metadata(img):
@@ -238,6 +250,7 @@ def mock_analysis_functions():
     app.main.compute_fractal_stats = app.analysis.compute_fractal_stats = with_logging("fractal", mock_fractal)
     app.main.compute_histogram = app.analysis.histogram.compute_histogram = with_logging("histogram", mock_histogram)
     app.main.extract_metadata = app.analysis.extract_metadata = with_logging("metadata", mock_metadata)
+    app.main.analyze_art_medium = app.analysis.analyze_art_medium = with_logging("art_medium", mock_art_medium)
 
     yield
 
@@ -248,6 +261,7 @@ def mock_analysis_functions():
     app.main.compute_fractal_stats = originals['compute_fractal_stats']
     app.main.compute_histogram = originals['compute_histogram']
     app.main.extract_metadata = originals['extract_metadata']
+    app.main.analyze_art_medium = originals['analyze_art_medium']
 
 @pytest.fixture(scope="session")
 def live_server():

@@ -1,10 +1,10 @@
-version: '3.7'
-
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: development
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     volumes:
       - data_volume:/app/data
       - tmp_volume:/app/tmp
@@ -17,8 +17,3 @@ volumes:
   data_volume:
   tmp_volume:
   cache_volume:
-
-
-networks:
-  default:
-    name: image-analysis-network

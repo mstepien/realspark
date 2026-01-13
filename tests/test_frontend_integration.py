@@ -60,6 +60,7 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
         "HOG Analysis",
         "AI Classifier",
         "Fractal Analysis",
+        "Art Medium Analysis",
         "Uploading to Storage",
         "Saving to Database"
     ]
@@ -102,6 +103,7 @@ def test_parallel_steps_show_running_state(page: Page, live_server: str, test_im
         "HOG Analysis",
         "AI Classifier",
         "Fractal Analysis",
+        "Art Medium Analysis",
         "Uploading to Storage"
     ]
     
@@ -166,6 +168,13 @@ def test_partial_results_display_progressively(page: Page, live_server: str, tes
     
     metadata_desc = page.locator("#metadataDescription")
     expect(metadata_desc).not_to_be_empty()
+    
+    # Wait for and verify Art Medium card appears
+    art_card = page.locator("#artMediumResultCard")
+    expect(art_card).to_be_visible(timeout=10000)
+    
+    art_display = page.locator("#artMediumDisplay")
+    expect(art_display).not_to_be_empty()
 
 
 def test_final_results_display(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
@@ -195,11 +204,12 @@ def test_final_results_display(page: Page, live_server: str, test_image_bytes: b
     expect(page.locator("#histogramCard")).to_be_visible()
     expect(page.locator("#hogContainer")).to_be_visible()
     expect(page.locator("#metadataResultCard")).to_be_visible()
+    expect(page.locator("#artMediumResultCard")).to_be_visible()
     expect(page.locator("#debugContainer")).to_be_visible()
     
     # Verify all steps show completion checkmarks
     completed_icons = page.locator('.step-icon.done')
-    expect(completed_icons).to_have_count(8)
+    expect(completed_icons).to_have_count(9)
     
     # Verify AI probability is displayed
     ai_score = page.locator("#aiScoreDisplay")

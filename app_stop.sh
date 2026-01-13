@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#kill <PID> && source venv/bin/activate && nohup uvicorn main:app --host 0.0.0.0 --port 8080 > server.log 2>&1 &
+#kill <PID> && source venv/bin/activate && nohup uvicorn main:app --host 127.0.0.1 --port 8080 > server.log 2>&1 &
 
 # Find the PID of the running uvicorn process
 PID=$(ps aux | grep "uvicorn app.main:app" | grep -v grep | awk '{print $2}')

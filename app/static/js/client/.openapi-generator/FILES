@@ -5,6 +5,7 @@ README.md
 docs/AggregateStats.md
 docs/DefaultApi.md
 docs/ImageStats.md
+docs/ImageStatsArtMediumAnalysis.md
 docs/ImageStatsMetadataAnalysis.md
 docs/TaskStatus.md
 docs/TaskStatusResult.md
@@ -17,8 +18,9 @@ src/api/DefaultApi.js
 src/index.js
 src/model/AggregateStats.js
 src/model/ImageStats.js
+src/model/ImageStatsArtMediumAnalysis.js
 src/model/ImageStatsMetadataAnalysis.js
 src/model/TaskStatus.js
 src/model/TaskStatusResult.js
 src/model/UploadResponse.js
-test/model/ImageStatsMetadataAnalysis.spec.js
+test/model/ImageStatsArtMediumAnalysis.spec.js

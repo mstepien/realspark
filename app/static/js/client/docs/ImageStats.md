@@ -12,5 +12,6 @@ Name | Type | Description | Notes
 **hogImageUrl** | **String** |  | [optional] 
 **fdDefault** | **Number** | Fractal dimension calculated over the full box range. | [optional] 
 **metadataAnalysis** | [**ImageStatsMetadataAnalysis**](ImageStatsMetadataAnalysis.md) |  | [optional] 
+**artMediumAnalysis** | [**ImageStatsArtMediumAnalysis**](ImageStatsArtMediumAnalysis.md) |  | [optional] 
 
 

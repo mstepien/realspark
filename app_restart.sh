@@ -5,7 +5,7 @@ bash app_stop.sh
 
 echo "Starting application..."
 source venv/bin/activate
-nohup uvicorn app.main:app --host 0.0.0.0 --port 8080 > server.log 2>&1 &
+nohup uvicorn app.main:app --host 127.0.0.1 --port 8080 > server.log 2>&1 &
 
 NEW_PID=$!
 echo "Application started with PID: $NEW_PID"

@@ -1,16 +1,11 @@
 fastapi
 uvicorn
-datamodel-code-generator
 google-cloud-storage
 duckdb
 pillow
-#numpy 2.0 had breaking changes as dependency for opencv-python-headles
-numpy<2
+numpy
 jinja2
 python-multipart
-pytest
-httpx
-pytest-asyncio
 
 #HOG features, skimage
 scikit-image
@@ -20,9 +15,5 @@ matplotlib
 transformers
 torch
 
-#histogram analysis
-opencv-python-headless
-
-#frontend integration testing
-playwright
-pytest-playwright
+#histogram 
+opencv-python-headless==4.10.0.84

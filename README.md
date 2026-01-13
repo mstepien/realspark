@@ -1,11 +1,13 @@
 # Image Analysis for Art Authentication
 
-This application is aimed to count various statistics in uploaded images to decide the chances of whether the image was AI-generated or human-made. The image the application is focused on is photos of art, specifically paintings on canvas, board, or metal.
+This application is aimed to count various statistics in uploaded images to decide the chances of whether the image was AI-generated or human-made. The image the application is focused on is photos of art, specifically paintings on canvas, board, or metal. 
 
 ## Prerequisites
 
-- Python 3.10.x, 3.11.x, or 3.12.x
-- pip
+- **Python**: 3.10.x, 3.11.x, or 3.12.x
+- **pip**: Python package manager
+- **Node.js**: v16+ (Required for API generation and Frontend tests)
+- **npm**: Node package manager
 
 ## Installation
 
@@ -18,7 +20,11 @@ This application is aimed to count various statistics in uploaded images to deci
 
 3.  Install the required dependencies:
     ```bash
+    # For production:
     pip install -r requirements.txt
+
+    # For development (tests, linting, api-gen):
+    pip install -r requirements-dev.txt
     ```
 
 ## Project Structure
@@ -34,7 +40,8 @@ This application is aimed to count various statistics in uploaded images to deci
 │   │   ├── analysis.py       # Numerical image analysis
 │   │   ├── aiclassifiers.py  # AI classification logic (ViT)
 │   │   ├── fractaldim.py     # Fractal dimension computation
-│   │   └── histogram.py      # Color histogram computation
+│   │   ├── histogram.py      # Color histogram computation
+│   │   └── artmedium/        # Art Medium classification (DINOv2, CLIP)
 │   ├── static/               # Frontend assets
 │   │   └── js/client/        # Generated JS Client SDK [GENERATED]
 │   └── templates/            # Jinja2 HTML templates
@@ -49,39 +56,40 @@ This application is aimed to count various statistics in uploaded images to deci
 ├── package.json              # Node.js dependencies/scripts
 ├── Dockerfile                # Docker image definition
 ├── docker-compose.yml        # Docker composition
-└── requirements.txt          # Python dependencies
+├── requirements.txt          # Production dependencies
+├── requirements-dev.txt      # Development & Test dependencies
+└── ...
 ```
 
-## How to Run the App
+### Developing with VS Code Dev Containers (Recommended)
 
-You can run the application using `uvicorn` directly or via the provided helper script.
+The preferred development workflow is using **VS Code Dev Containers**. This project uses a **multi-stage Dockerfile** to provide a perfectly configured environment.
 
-### Using the helper script (Recommended)
+- **Automated Setup**: Installs Python 3.12, Node.js v18 (for API generation), and all development tools.
+- **Isolated Environment**: Bypasses local dependency conflicts (especially with PyTorch/Transformers on Intel Macs).
+- **Integrated Tools**: Pre-configures extensions and services (Formatter: `ruff`, Linter: `PyLance`).
 
-This script manages the process for you, stopping any existing instances and starting a new one in the background.
+**How to start:**
+1. Open the project folder in VS Code.
+2. Click **"Reopen in Container"** when prompted (or via the Command Palette).
+3. The environment will automatically build using the `development` target, installing both production and development requirements.
 
-```bash
-./app_restart.sh
-```
+The application will be available at [http://localhost:8080](http://localhost:8080).
 
-Logs will be written to `server.log`.
-
-### Manual Start
-
-To start the application manually:
-
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8080
-```
-
-The application will be available at `http://localhost:8080`.
+## Testing
 
 ### Backend Tests (Python)
 
 The project uses `pytest` for backend testing. To run the test suite:
 
+On local environment:
 ```bash
 ./venv/bin/pytest
+```
+
+On docker environment:
+```bash
+pytest
 ```
 
 This will execute all tests located in the `tests/` directory.
@@ -89,10 +97,6 @@ This will execute all tests located in the `tests/` directory.
 ### Frontend Tests (JavaScript)
 
 The project uses `Jest` for unit testing the frontend logic (validators, renderers, etc.).
-
-**Prerequisites:**
-- **Node.js**: Version 16.0 or higher is required for ES Module support.
-- **npm**: Installed with Node.js.
 
 **Setup and Execution:**
 
@@ -206,54 +210,40 @@ bash generate-api.sh
 
 ## Deploy with Docker
 
-You can easily deploy the application using Docker. This ensures all dependencies are correctly managed and provided.
+The project uses a **multi-stage build** process to ensure a secure and lean production environment.
 
-### Prerequisites
-- Docker installed
-- Docker Compose (optional but recommended)
+### Multi-Stage Dockerfile Targets
+- **`base`**: Common runtime environment.
+- **`development`**: Includes full build toolchain (git, curl, wget, Node.js, build-essential) and development dependencies for testing and API generation.
+- **`production`**: Minimal image containing only the application code and production dependencies for maximum security and performance.
 
 ### Option 1: Using Docker Compose (Recommended)
+This method handles volume mapping for database persistence and model caching.
 
-This method sets up volumes for persisting the database and model cache.
+**To start for local development (includes dev tools):**
+```bash
+docker compose up -d --build
+```
+*Note: The `docker-compose.yml` is configured to use the `development` target by default, which includes all tools for API generation and testing.*
 
-0.  **Generate API (optional)**:
-    ```bash
-    npm run generate-api
-    ```
+**To view logs:**
+```bash
+docker compose logs -f
+```
 
-1.  **Build and start the application**:
-    ```bash
-    docker-compose up -d --build
-    ```
-    or just start the application:
-    ```bash
-    docker-compose up -d
-    ```
+**To stop:**
+```bash
+docker compose down -v
+```
 
-2.  **View logs**:
-    ```bash
-    docker-compose logs -f
-    ```
-
-3.  **Stop the application**:
-    ```bash
-    docker-compose down
-    ```
-
-### Option 2: Using Docker directly
-
-1.  **Build the image**:
-    ```bash
-    docker build -t image-analysis-app .
-    ```
-
-2.  **Run the container**:
-    ```bash
-    docker run -p 8080:8080 image-analysis-app
-    ```
+### Option 2: Building for Production (Lean)
+To build a lean image without development tools:
+```bash
+docker build --target production -t art-analysis-prod .
+```
 
 ### Docker Volume Mapping
-If running with `docker-compose`, the following volumes are mapped to persist data:
+If running with `docker compose`, the following volumes are mapped to persist data:
 - `data/`: Persists the analysis history (`image_stats.duckdb`). Mounting the directory allows for data locking and temporary files required by DuckDB.
 - `tmp/`: Persists generated HOG visualizations.
 - `cache/transformers/`: Persists the AI model weights to avoid downloading them on every restart.
@@ -284,11 +274,16 @@ It provides a probability score (0.0 to 1.0) where higher values indicate high l
 ### HOG Feature Visualization
 Histogram of Oriented Gradients (HOG) analysis is performed to identify structural patterns in the image, which are then visualized to show the detected features.
 
-### Modular Analysis Package
-The analysis logic is organized into a modular package structure:
-- `analysis/analysis.py`: Numerical image analysis (HOG, metadata).
-- `analysis/aiclassifiers.py`: AI classification logic and model management.
-- `analysis/fractaldim.py`: Fractal dimensionality.
+### Art Medium Analysis (DINOv2 + CLIP)
+The application performs a multi-stage analysis to identify the artistic medium and verify its physical consistency.
+- **Physical Texture Analysis (DINOv2)**: 
+    - The image is tiled into overlapping 224x224 patches.
+    - **DINOv2** (`facebook/dinov2-base`) generates high-dimensional embeddings for each patch.
+    - **Vector Search & Clustering**: Patches are compared using cosine similarity. Repeatable textures (e.g., "scratchiness" of a dry brush or specific impasto strokes) cluster together.
+    - **Consistency Scoring**: Measures texture uniformity. Low consistency suggests complex physical brushwork, while high consistency often points to digital media or uniform washes.
+- **High-Level Labeling (CLIP)**:
+    - **CLIP** (`openai/clip-vit-base-patch32`) provides zero-shot classification for the entire image against labels like *Watercolor, Oil, Acrylic, Digital painting*, etc.
+- **Cross-Verification**: The local texture findings from DINOv2 are contrasted with global CLIP labels to provide a nuanced description of the medium and its authenticity.
 
 
 ## API Reference
@@ -307,12 +302,14 @@ The analysis logic is organized into a modular package structure:
     *   `progress`: (int) Progress percentage (0-100).
     *   `steps`: (list) List of total steps:
         1. `Preprocessing`: Basic image loading and metadata extraction.
-        2. `Histogram Analysis`: Computing RGB color histograms.
-        3. `HOG Analysis`: Computing Histogram of Oriented Gradients.
-        4. `AI Classifier`: Running the ViT inference.
-        5. `Fractal Analysis`: Computing fractal dimensionality.
-        6. `Uploading to Storage`: Saving the original image to GCS.
-        7. `Saving to Database`: Storing results and metadata in DuckDB.
+        2. `Metadata Analysis`: Examining EXIF and software tags for AI signatures.
+        3. `Histogram Analysis`: Computing RGB color histograms.
+        4. `HOG Analysis`: Computing Histogram of Oriented Gradients for structural patterns.
+        5. `AI Classifier`: Running ViT inference for AI-vs-human detection.
+        6. `Fractal Analysis`: Computing fractal dimensionality.
+        7. `Art Medium Analysis`: DINOv2 patch analysis and CLIP classification.
+        8. `Uploading to Storage`: Saving the original image to GCS.
+        9. `Saving to Database`: Storing results and metadata in DuckDB.
     *   `current_step`: (string) The step currently executing.
     *   `completed_steps`: (list) List of completed steps.
     *   `partial_results`: (object, optional) Real-time results as they become available:
@@ -332,5 +329,24 @@ The analysis logic is organized into a modular package structure:
 *   Serves generated files like HOG visualizations.
 
 
-# TODO:
-- Read embedded SynthID digital watermark (Requires Google Cloud Vertex AI SDK; no offline library available) 
+## Security
+
+This project prioritizes security and environment integrity through the following measures:
+
+### Restricted Interfaces
+The application is configured to listen on `127.0.0.1` (localhost) when running natively. When running via Docker, it is exposed only to the local machine via the published port on `127.0.0.1:8080`. This ensures the application is not accessible from your local network or public internet unless explicitly configured.
+
+### Dependency & Vulnerability Management
+Due to the use of specific AI/ML frameworks (PyTorch 2.2+, Transformers), the project uses multi-stage builds to mitigate risks:
+- **Environment Isolation**: Production images exclude all high-risk development tools (git, curl, build-essential, etc.).
+- **Known Vulnerabilities**: Some local Intel-Mac versions of libraries may have CVEs; Docker provides a modern Linux environment where the latest non-vulnerable versions can be run regardless of your host OS.
+
+### Trusted Model Loading
+The application only downloads and loads pre-trained weights from verified official repositories (OpenAI, Facebook/Meta) on Hugging Face.
+
+### User Permissions
+Docker containers run as a non-root user (`myuser`) to prevent privilege escalation within the container environment.
+
+
+## TODO:
+- Read embedded SynthID digital watermark (Requires Google Cloud Vertex AI SDK; no offline library available)

@@ -5,7 +5,10 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 from app.database import init_db, save_stats, get_aggregate_stats
 from app.storage import upload_to_gcs
-from app.analysis import prepare_image, compute_hog, detect_ai, compute_fractal_stats, extract_metadata
+from app.analysis import (
+    prepare_image, compute_hog, detect_ai, 
+    compute_fractal_stats, extract_metadata, analyze_art_medium
+)
 from app.analysis.histogram import compute_histogram
 import io
 import os
@@ -42,6 +45,7 @@ STEPS = [
     "HOG Analysis", 
     "AI Classifier",
     "Fractal Analysis",
+    "Art Medium Analysis",
     "Uploading to Storage",
     "Saving to Database"
 ]
@@ -174,19 +178,36 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                     tasks[task_id]["timed_out_steps"].append("Metadata Analysis")
                     return {"tags": {}, "description": "Analysis timed out.", "is_suspicious": False}
 
+            async def run_art_medium():
+                try:
+                    art_results = await asyncio.wait_for(
+                        loop.run_in_executor(executor, analyze_art_medium, image),
+                        timeout=STEP_TIMEOUT
+                    )
+                    tasks[task_id]["partial_results"]["art_medium"] = art_results
+                    tasks[task_id]["completed_steps"].append("Art Medium Analysis")
+                    return art_results
+                except asyncio.TimeoutError:
+                    logger.warning(f"Art medium analysis timed out for task {task_id}")
+                    tasks[task_id]["timed_out_steps"].append("Art Medium Analysis")
+                    return None
+
             # Execute parallel tasks
-            res_hist, res_hog, res_ai, res_frac, res_upload, res_meta = await asyncio.gather(
+            results = await asyncio.gather(
                 run_histogram(),
                 run_hog(),
                 run_ai(),
                 run_fractal(),
                 run_upload(),
                 run_metadata(),
+                run_art_medium(),
                 return_exceptions=True
             )
+            
+            res_hist, res_hog, res_ai, res_frac, res_upload, res_meta, res_art = results
 
             # Check for errors in parallel cluster
-            for result in [res_hist, res_hog, res_ai, res_frac, res_upload, res_meta]:
+            for result in results:
                 if isinstance(result, Exception):
                     raise result
 
@@ -195,6 +216,7 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
             fractal_stats = res_frac
             url = res_upload
             metadata_analysis = res_meta
+            art_medium_analysis = res_art
 
             analysis_results = {
                 "width": width,
@@ -204,7 +226,8 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                 "hog_image_buffer": hog_image_buffer,
                 "ai_probability": ai_score,
                 **fractal_stats,
-                "metadata_analysis": metadata_analysis
+                "metadata_analysis": metadata_analysis,
+                "art_medium_analysis": art_medium_analysis
             }
             tasks[task_id]["progress"] = 85
 
@@ -308,4 +331,4 @@ def get_stats():
     return get_aggregate_stats()
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="127.0.0.1", port=8080)

@@ -12,6 +12,7 @@
  */
 
 import ApiClient from '../ApiClient';
+import ImageStatsArtMediumAnalysis from './ImageStatsArtMediumAnalysis';
 import ImageStatsMetadataAnalysis from './ImageStatsMetadataAnalysis';
 
 /**
@@ -72,6 +73,9 @@ class ImageStats {
             if (data.hasOwnProperty('metadata_analysis')) {
                 obj['metadata_analysis'] = ImageStatsMetadataAnalysis.constructFromObject(data['metadata_analysis']);
             }
+            if (data.hasOwnProperty('art_medium_analysis')) {
+                obj['art_medium_analysis'] = ImageStatsArtMediumAnalysis.constructFromObject(data['art_medium_analysis']);
+            }
         }
         return obj;
     }
@@ -97,6 +101,10 @@ class ImageStats {
         // validate the optional field `metadata_analysis`
         if (data['metadata_analysis']) { // data not null
           ImageStatsMetadataAnalysis.validateJSON(data['metadata_analysis']);
+        }
+        // validate the optional field `art_medium_analysis`
+        if (data['art_medium_analysis']) { // data not null
+          ImageStatsArtMediumAnalysis.validateJSON(data['art_medium_analysis']);
         }
 
         return true;
@@ -147,6 +155,11 @@ ImageStats.prototype['fd_default'] = undefined;
  * @member {module:model/ImageStatsMetadataAnalysis} metadata_analysis
  */
 ImageStats.prototype['metadata_analysis'] = undefined;
+
+/**
+ * @member {module:model/ImageStatsArtMediumAnalysis} art_medium_analysis
+ */
+ImageStats.prototype['art_medium_analysis'] = undefined;
 
 
 

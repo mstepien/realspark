@@ -1,0 +1,7 @@
+datamodel-code-generator
+pytest
+httpx
+pytest-asyncio
+ruff
+playwright
+pytest-playwright
