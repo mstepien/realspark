@@ -13,3 +13,4 @@ coverage/*
 data/*
 app/static/js/client/git_push.sh
 app/static/js/client/mocha.opts
+cache/*

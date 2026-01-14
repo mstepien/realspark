@@ -1,135 +1,156 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="sl-theme-light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Stats</title>
+    <title>RealSpark | Image Authentication</title>
+
+    <!-- Shoelace Assets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/dist/themes/light.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script type="module"
+        src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/dist/shoelace-autoloader.js"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
+        :root {
+            --sl-color-primary-600: #6366f1;
+            /* Indigo primary */
+            --sl-input-border-radius-medium: 8px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f9;
-            color: #333;
+            font-family: var(--sl-font-sans);
+            background-color: #f8fafc;
+            color: var(--sl-color-neutral-900);
+            margin: 0;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
         }
 
         .container {
+            max-width: 900px;
+            width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 2rem;
         }
 
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .upload-section {
+        .header {
             text-align: center;
+            margin-bottom: 2rem;
         }
 
-        h1 {
-            text-align: center;
-            color: #2c3e50;
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(to right, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill_color: transparent;
+            font-weight: 800;
         }
 
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
+        .header p {
+            color: var(--sl-color-neutral-500);
+            margin-top: 0.5rem;
         }
 
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        input[type="file"] {
-            margin-bottom: 10px;
-        }
-
-        .progress-container {
+        sl-card {
             width: 100%;
-            background-color: #f3f3f3;
-            border-radius: 4px;
-            margin: 10px 0;
-            display: none;
+            --border-radius: 12px;
         }
 
-        .progress-bar {
-            width: 0%;
-            height: 20px;
-            background-color: #3498db;
-            border-radius: 4px;
+        sl-card [slot="header"] {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--sl-color-primary-600);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--sl-color-neutral-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed var(--sl-color-neutral-300);
+            border-radius: 12px;
+            padding: 3rem;
             text-align: center;
-            line-height: 20px;
-            color: white;
-            font-size: 12px;
-            transition: width 0.3s;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: white;
         }
 
-        .status-text {
-            text-align: center;
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .step-list {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0 0 0;
-            display: none;
-            /* Hidden by default */
+        .upload-dropzone:hover {
+            border-color: var(--sl-color-primary-400);
+            background: var(--sl-color-primary-50);
         }
 
         .step-item {
             display: flex;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--sl-color-neutral-100);
         }
 
-        .step-icon {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-            font-weight: bold;
+        .step-item:last-child {
+            border-bottom: none;
         }
 
-        .step-icon.pending {
-            color: #ccc;
+        .ai-score {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 1rem 0;
         }
 
-        .step-icon.active {
-            color: #3498db;
+        #metadataTags {
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: var(--sl-font-mono);
+            font-size: 0.8rem;
+            background: var(--sl-color-neutral-50);
+            padding: 0.5rem;
+            border-radius: 4px;
         }
 
-        .step-icon.done {
-            color: #27ae60;
+        .histogram-container {
+            height: 300px;
+            width: 100%;
         }
 
-        .ai-score-safe {
-            color: #27ae60;
+        /* Chart customization to fit Shoelace theme */
+        canvas {
+            max-width: 100%;
         }
 
-        .ai-score-warning {
-            color: #f39c12;
-        }
-
-        .ai-score-danger {
-            color: #c0392b;
-        }
-
-        @keyframes spin {
+        @keyframes bi-spin {
             0% {
                 transform: rotate(0deg);
             }
@@ -139,552 +160,405 @@
             }
         }
 
-        .step-icon.running {
+        .bi-spin {
             display: inline-block;
-            animation: spin 1s linear infinite;
-            color: #3498db;
-        }
-
-        .step-icon.timed-out {
-            color: #f39c12;
-            /* Orange */
-            font-weight: bold;
+            animation: bi-spin 1.5s linear infinite;
         }
     </style>
 </head>
 
-<body>
+<body x-data="app()">
     <div class="container">
-        <h1>Is that image created by AI?</h1>
+        <header class="header">
+            <h1>RealSpark</h1>
+            <p>Advanced Image Authentication & Metadata Analysis</p>
+        </header>
 
-        <div class="card upload-section">
-            <h2>Upload New Image</h2>
-            <form id="uploadForm">
-                <input type="file" name="file" accept="image/*" required>
-                <br>
-                <button type="submit">Upload & Analyze</button>
-            </form>
-            <div id="progressContainer" class="progress-container">
-                <div id="progressBar" class="progress-bar">0%</div>
-            </div>
-            <div id="statusText" class="status-text"></div>
-            <ul id="stepList" class="step-list"></ul>
-            <div id="uploadResult" style="margin-top: 10px;"></div>
-        </div>
-
-        <div id="aiResultCard" class="card" style="display: none; text-align: center;">
-            <h2>AI Detection Analysis</h2>
-            <div id="aiScoreDisplay" style="font-size: 36px; font-weight: bold; margin: 15px 0;"></div>
-            <div id="aiDescription" style="font-size: 18px; color: #555;"></div>
-        </div>
-
-        <div id="metadataResultCard" class="card" style="display: none;">
-            <h2 style="text-align: center;">Metadata Analysis</h2>
-            <div id="metadataDescription"
-                style="font-size: 18px; margin-bottom: 15px; text-align: center; font-weight: 500;"></div>
-            <div id="metadataTags"
-                style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tbody id="metadataTagsBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="artMediumResultCard" class="card" style="display: none; text-align: center;">
-            <h2>Artistic Medium Analysis</h2>
-            <div id="artMediumDisplay" style="font-size: 28px; font-weight: bold; margin: 15px 0; color: #8e44ad;">
-            </div>
-            <div id="artMediumDescription"
-                style="font-size: 16px; color: #555; background: #f9f9f9; padding: 10px; border-radius: 4px;"></div>
-        </div>
-
-        <div id="fractalResultCard" class="card" style="display: none;">
-            <h2 style="text-align: center;">Fractal Dimension Analysis</h2>
-            <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 20px;">
-                <div>
-                    <h3>Default Scale</h3>
-                    <div id="fdDefaultDisplay" style="font-size: 24px; font-weight: bold; color: #3498db;">-</div>
-                    <small>Full Range</small>
+        <!-- Main Upload Card -->
+        <sl-card>
+            <div x-show="!taskId">
+                <div class="upload-dropzone" @click="$refs.fileInput.click()">
+                    <i class="bi bi-cloud-upload" style="font-size: 3rem; color: var(--sl-color-primary-400)"></i>
+                    <h3 style="margin-top: 1rem">Drop image here or click to upload</h3>
+                    <p style="font-size: 0.9rem; color: var(--sl-color-neutral-500)">Supports PNG, JPG, JPEG</p>
+                    <input type="file" x-ref="fileInput" name="file" accept="image/*" style="display: none"
+                        @change="handleFileUpload">
                 </div>
             </div>
-            <p style="text-align: center; color: #7f8c8d; margin-top: 20px;">
-                Fractal Dimension (D) typically ranges from 2.0 (smooth surface) to 3.0 (extremely rough/complex).
-            </p>
-        </div>
 
-        <div id="histogramCard" class="card" style="display: none;">
-            <h2 style="text-align: center;">Color Histogram</h2>
-            <canvas id="histogramChart"></canvas>
-            <p style="text-align: center; color: #7f8c8d; margin-top: 15px;">
-                Distribution of pixel intensities across RGB channels (0-255).
-            </p>
-        </div>
+            <div x-show="taskId" x-cloak>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+                    <h3 style="margin: 0">Analysis in Progress</h3>
+                    <sl-button variant="neutral" size="small" @click="resetTask" outline>Cancel</sl-button>
+                </div>
 
-        <div class="card">
-            <h2>Statistics Overview</h2>
-            <canvas id="statsChart"></canvas>
+                <sl-progress-bar :value="progress" style="--height: 12px; margin-bottom: 0.5rem"></sl-progress-bar>
+                <div style="text-align: center; font-size: 0.9rem; color: var(--sl-color-neutral-600)" x-text="status">
+                </div>
 
-            <div id="hogContainer" style="margin-top: 20px; display: none; text-align: center;">
-                <h3>HOG Visualization</h3>
-                <img id="hogImage" src="" alt="HOG Visualization" style="max-width: 100%; border: 1px solid #ddd;">
+                <!-- Image Preview Section -->
+                <div x-show="previewUrl" style="margin-top: 1.5rem; text-align: center;">
+                    <img :src="previewUrl"
+                        style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: var(--sl-shadow-medium);">
+                </div>
+
+                <div style="margin-top: 2rem">
+                    <template x-for="step in steps" :key="step">
+                        <div class="step-item">
+                            <span>
+                                <!-- Done -->
+                                <template x-if="isStepDone(step)">
+                                    <i class="bi bi-check-circle-fill"
+                                        style="color: var(--sl-color-success-600); font-size: 1.2rem;"></i>
+                                </template>
+                                <!-- Timeout -->
+                                <template x-if="isStepTimeout(step)">
+                                    <i class="bi bi-exclamation-triangle-fill"
+                                        style="color: var(--sl-color-warning-600); font-size: 1.2rem;"></i>
+                                </template>
+                                <!-- Running -->
+                                <template x-if="isStepRunning(step)">
+                                    <i class="bi bi-arrow-repeat bi-spin"
+                                        style="color: var(--sl-color-primary-600); font-size: 1.2rem;"></i>
+                                </template>
+                                <!-- Pending -->
+                                <template x-if="isStepPending(step)">
+                                    <i class="bi bi-clock"
+                                        style="color: var(--sl-color-neutral-300); font-size: 1.2rem;"></i>
+                                </template>
+                            </span>
+                            <span
+                                :style="isStepRunning(step) ? 'font-weight: bold; color: var(--sl-color-primary-600)' : 'color: var(--sl-color-neutral-600)'"
+                                x-text="step"></span>
+                        </div>
+                    </template>
+                </div>
             </div>
+        </sl-card>
+
+        <!-- Results Section (Visible when results start coming in) -->
+        <div class="grid-2" x-show="partialResults || result" x-cloak>
+
+            <!-- AI Prob Card -->
+            <template x-if="hasAiResult()">
+                <sl-card>
+                    <div slot="header">AI Classifier</div>
+                    <div style="text-align: center">
+                        <div class="ai-score" :style="'color: ' + getAiColor()" x-text="getAiText()"></div>
+                        <p x-text="getAiDescription()" style="font-weight: 500"></p>
+                    </div>
+                </sl-card>
+            </template>
+
+            <!-- Art Medium Card -->
+            <template x-if="partialResults?.art_medium">
+                <sl-card>
+                    <div slot="header">Artistic Medium</div>
+                    <div style="text-align: center">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #8e44ad"
+                            x-text="partialResults.art_medium.medium"></div>
+                        <div style="color: var(--sl-color-neutral-500); margin: 0.5rem 0">Confidence: <span
+                                x-text="(partialResults.art_medium.confidence * 100).toFixed(1) + '%'"></span></div>
+                        <p style="font-size: 0.9rem; text-align: left; background: var(--sl-color-neutral-50); padding: 0.75rem; border-radius: 8px"
+                            x-text="partialResults.art_medium.description"></p>
+                    </div>
+                </sl-card>
+            </template>
+
+            <!-- Metadata Card -->
+            <template x-if="partialResults?.metadata_analysis">
+                <sl-card style="grid-column: span 1">
+                    <div slot="header">Metadata Analysis</div>
+                    <div style="text-align: center">
+                        <div style="font-weight: 600; margin-bottom: 1rem"
+                            :style="'color: ' + (partialResults.metadata_analysis.is_suspicious ? 'var(--sl-color-danger-600)' : 'var(--sl-color-success-600)')"
+                            x-text="partialResults.metadata_analysis.description"></div>
+                        <div id="metadataTags">
+                            <table style="width: 100%; text-align: left; border-collapse: collapse">
+                                <template
+                                    x-for="[key, value] in Object.entries(partialResults.metadata_analysis.tags || {})"
+                                    :key="key">
+                                    <tr>
+                                        <td style="color: var(--sl-color-neutral-500); padding: 2px 4px; border-bottom: 1px solid var(--sl-color-neutral-100)"
+                                            x-text="key"></td>
+                                        <td style="padding: 2px 4px; border-bottom: 1px solid var(--sl-color-neutral-100)"
+                                            x-text="value"></td>
+                                    </tr>
+                                </template>
+                            </table>
+                        </div>
+                    </div>
+                </sl-card>
+            </template>
+
+            <!-- Fractal Card -->
+            <template x-if="partialResults?.fd_default !== undefined">
+                <sl-card>
+                    <div slot="header">Fractal Dimension</div>
+                    <div style="text-align: center; padding: 1rem 0">
+                        <div class="stat-value"
+                            x-text="partialResults.fd_default !== null ? Number(partialResults.fd_default).toFixed(4) : 'Timed Out'">
+                        </div>
+                        <div class="stat-label">Full Range Complexity</div>
+                        <p style="font-size: 0.8rem; color: var(--sl-color-neutral-500); margin-top: 1rem">Typically
+                            ranges from 2.0 (smooth) to 3.0 (rough/complex).</p>
+                    </div>
+                </sl-card>
+            </template>
         </div>
 
-        <div class="card upload-section">
-            <div id="debugContainer" style="margin-top: 20px; display: none;">
-                <details open>
-                    <summary
-                        style="padding: 10px; background: #eee; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                        View Raw Debug Data</summary>
-                    <pre id="debugOutput"
-                        style="background: #f4f4f4; padding: 10px; overflow-x: auto; margin-top: 10px; border: 1px solid #ddd; border-radius: 4px;"></pre>
-                </details>
-            </div>
+        <!-- Histogram Card -->
+        <div x-show="partialResults?.histogram_r" x-cloak>
+            <sl-card>
+                <div slot="header">Color Intensity Distribution</div>
+                <div class="histogram-container">
+                    <canvas x-ref="histogramCanvas"></canvas>
+                </div>
+            </sl-card>
         </div>
+
+        <!-- Stats Overview & HOG -->
+        <div class="grid-2">
+            <sl-card>
+                <div slot="header">Aggregate Database Stats</div>
+                <div style="display: flex; justify-content: space-around; margin-bottom: 1.5rem">
+                    <div style="text-align: center">
+                        <div class="stat-value" x-text="dbStats.total_images">0</div>
+                        <div class="stat-label">Total Analyzed</div>
+                    </div>
+                    <div style="text-align: center">
+                        <div class="stat-value" x-text="Math.round(dbStats.avg_width || 0)">0</div>
+                        <div class="stat-label">Avg Width</div>
+                    </div>
+                </div>
+                <canvas x-ref="statsCanvas"></canvas>
+            </sl-card>
+
+            <sl-card x-show="partialResults?.hog_image_url" x-cloak>
+                <div slot="header">HOG Visualization</div>
+                <div style="text-align: center">
+                    <img :src="partialResults?.hog_image_url"
+                        style="max-width: 100%; border-radius: 8px; border: 1px solid var(--sl-color-neutral-200)">
+                    <p style="font-size: 0.8rem; color: var(--sl-color-neutral-500); margin-top: 1rem">Histogram of
+                        Oriented Gradients</p>
+                </div>
+            </sl-card>
+        </div>
+
+        <!-- Debug Section -->
+        <sl-details summary="View Raw Process Data" x-show="result" x-cloak>
+            <pre style="background: var(--sl-color-neutral-50); padding: 1rem; border-radius: 8px; overflow: auto; font-size: 0.8rem"
+                x-text="JSON.stringify(result, null, 2)"></pre>
+        </sl-details>
     </div>
 
     <script>
-        const ctx = document.getElementById('statsChart').getContext('2d');
-        let chart;
-        let activePollInterval = null;
+        function app() {
+            return {
+                dbStats: { total_images: 0 },
+                taskId: null,
+                previewUrl: null,
+                status: '',
+                progress: 0,
+                steps: [],
+                currentStep: null,
+                completedSteps: [],
+                timedOutSteps: [],
+                partialResults: null,
+                result: null,
+                pollInterval: null,
+                charts: {
+                    stats: null,
+                    histogram: null
+                },
 
-        async function fetchStats() {
-            try {
-                const response = await fetch('/stats');
-                const data = await response.json();
+                init() {
+                    this.fetchStats();
+                    setInterval(() => this.fetchStats(), 30000); // Background refresh
+                },
 
-                if (chart) {
-                    chart.destroy();
-                }
+                async fetchStats() {
+                    const res = await fetch('/stats');
+                    this.dbStats = await res.json();
+                    this.renderStatsChart();
+                },
 
-                chart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Avg Width', 'Avg Height', 'Avg Red', 'Avg Green', 'Avg Blue'],
-                        datasets: [{
-                            label: 'Aggregate Statistics (Total Images: ' + data.total_images + ')',
-                            data: [data.avg_width, data.avg_height, data.avg_color[0], data.avg_color[1], data.avg_color[2]],
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.2)',
-                                'rgba(54, 162, 235, 0.2)',
-                                'rgba(255, 99, 132, 0.2)',
-                                'rgba(75, 192, 192, 0.2)',
-                                'rgba(153, 102, 255, 0.2)'
-                            ],
-                            borderColor: [
-                                'rgba(54, 162, 235, 1)',
-                                'rgba(54, 162, 235, 1)',
-                                'rgba(255, 99, 132, 1)',
-                                'rgba(75, 192, 192, 1)',
-                                'rgba(153, 102, 255, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
+                handleFileUpload(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    this.resetTask();
+                    this.previewUrl = URL.createObjectURL(file);
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    this.startUpload(formData);
+                },
+
+                async startUpload(formData) {
+                    try {
+                        const res = await fetch('/upload', { method: 'POST', body: formData });
+                        const data = await res.json();
+                        this.taskId = data.task_id;
+                        this.startPolling();
+                    } catch (err) {
+                        this.status = "Upload failed: " + err.message;
+                    }
+                },
+
+                startPolling() {
+                    this.pollInterval = setInterval(async () => {
+                        const res = await fetch('/progress/' + this.taskId);
+                        if (!res.ok) return;
+                        const data = await res.json();
+
+                        this.status = data.status;
+                        this.progress = data.progress;
+                        this.steps = data.steps;
+                        this.currentStep = data.current_step;
+                        this.completedSteps = data.completed_steps;
+                        this.timedOutSteps = data.timed_out_steps;
+                        this.partialResults = data.partial_results;
+
+                        if (this.partialResults?.histogram_r) {
+                            this.$nextTick(() => this.renderHistogramChart());
+                        }
+
+                        if (data.status === 'Complete' || data.error || data.status === 'Abandoned') {
+                            this.stopPolling();
+                            if (data.status === 'Complete') {
+                                this.result = data.result;
+                                this.fetchStats();
                             }
                         }
+                    }, 500);
+                },
+
+                stopPolling() {
+                    if (this.pollInterval) {
+                        clearInterval(this.pollInterval);
+                        this.pollInterval = null;
                     }
-                });
-            } catch (err) {
-                console.error("Failed to fetch stats:", err);
+                },
+
+                // Step Status Helpers
+                isStepDone(step) { return this.completedSteps.includes(step); },
+                isStepTimeout(step) { return this.timedOutSteps.includes(step); },
+                isStepRunning(step) {
+                    if (this.isStepDone(step) || this.isStepTimeout(step)) return false;
+                    if (this.currentStep === step) return true;
+                    // Handle parallel cluster state
+                    const parallelSteps = ["Metadata Analysis", "Histogram Analysis", "HOG Analysis", "AI Classifier", "Fractal Analysis", "Uploading to Storage", "Art Medium Analysis"];
+                    return (this.currentStep === "Parallel Analysis & Upload" && parallelSteps.includes(step));
+                },
+                isStepPending(step) {
+                    return !this.isStepDone(step) && !this.isStepTimeout(step) && !this.isStepRunning(step);
+                },
+
+                resetTask() {
+                    this.stopPolling();
+                    if (this.previewUrl && this.previewUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(this.previewUrl);
+                    }
+                    this.taskId = null;
+                    this.previewUrl = null;
+                    this.status = '';
+                    this.progress = 0;
+                    this.currentStep = null;
+                    this.completedSteps = [];
+                    this.timedOutSteps = [];
+                    this.partialResults = null;
+                    this.result = null;
+                    if (this.charts.histogram) {
+                        this.charts.histogram.destroy();
+                        this.charts.histogram = null;
+                    }
+                },
+
+                // AI Result Helpers
+                hasAiResult() {
+                    const timedOut = this.timedOutSteps.includes('AI Classifier');
+                    const hasProb = this.partialResults?.ai_probability !== undefined;
+                    return timedOut || hasProb;
+                },
+
+                getAiText() {
+                    if (this.timedOutSteps.includes('AI Classifier')) return 'TIMEOUT';
+                    const prob = this.partialResults?.ai_probability;
+                    if (prob === undefined) return '';
+                    return (prob * 100).toFixed(1) + '%';
+                },
+
+                getAiColor() {
+                    if (this.timedOutSteps.includes('AI Classifier')) return 'var(--sl-color-warning-600)';
+                    const prob = this.partialResults?.ai_probability;
+                    if (prob < 0.2) return 'var(--sl-color-success-600)';
+                    if (prob < 0.8) return 'var(--sl-color-warning-600)';
+                    return 'var(--sl-color-danger-600)';
+                },
+
+                getAiDescription() {
+                    if (this.timedOutSteps.includes('AI Classifier')) return 'Analysis took too long';
+                    const prob = this.partialResults?.ai_probability;
+                    if (prob < 0.2) return 'Likely Human-Created';
+                    if (prob < 0.8) return 'Uncertain / Metadata Mismatch';
+                    return 'Likely AI-Generated';
+                },
+
+                renderStatsChart() {
+                    if (!this.$refs.statsCanvas) return;
+                    const ctx = this.$refs.statsCanvas.getContext('2d');
+                    if (!ctx) return;
+
+                    if (this.charts.stats) this.charts.stats.destroy();
+
+                    this.charts.stats = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Red', 'Green', 'Blue'],
+                            datasets: [{
+                                label: 'Avg Color Intensity',
+                                data: [this.dbStats.avg_color?.[0], this.dbStats.avg_color?.[1], this.dbStats.avg_color?.[2]],
+                                backgroundColor: ['rgba(239, 68, 68, 0.2)', 'rgba(34, 197, 94, 0.2)', 'rgba(99, 102, 241, 0.2)'],
+                                borderColor: ['#ef4444', '#22c55e', '#6366f1'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: { y: { beginAtZero: true, max: 255 } },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                },
+
+                renderHistogramChart() {
+                    if (this.charts.histogram || !this.$refs.histogramCanvas) return;
+
+                    const ctx = this.$refs.histogramCanvas.getContext('2d');
+                    if (!ctx) return;
+                    this.charts.histogram = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: Array.from({ length: 256 }, (_, i) => i),
+                            datasets: [
+                                { label: 'Red', data: this.partialResults.histogram_r, borderColor: '#ef4444', pointRadius: 0, fill: false, borderWidth: 1.5 },
+                                { label: 'Green', data: this.partialResults.histogram_g, borderColor: '#22c55e', pointRadius: 0, fill: false, borderWidth: 1.5 },
+                                { label: 'Blue', data: this.partialResults.histogram_b, borderColor: '#6366f1', pointRadius: 0, fill: false, borderWidth: 1.5 }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { ticks: { maxTicksLimit: 10 } },
+                                y: { display: false }
+                            },
+                            plugins: { legend: { position: 'top' } }
+                        }
+                    });
+                }
             }
         }
-
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Clear existing polling if any
-            if (activePollInterval) {
-                clearInterval(activePollInterval);
-                activePollInterval = null;
-            }
-
-            const formData = new FormData(e.target);
-            const resultDiv = document.getElementById('uploadResult');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const statusText = document.getElementById('statusText');
-            const stepList = document.getElementById('stepList');
-
-            resultDiv.textContent = "";
-            statusText.textContent = "";
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
-            stepList.innerHTML = "";
-            stepList.style.display = 'none';
-
-            // Clean up previous results
-            document.getElementById('aiResultCard').style.display = 'none';
-            document.getElementById('aiScoreDisplay').textContent = '';
-            document.getElementById('aiDescription').textContent = '';
-
-            document.getElementById('fractalResultCard').style.display = 'none';
-            document.getElementById('fdDefaultDisplay').textContent = '-';
-
-            document.getElementById('histogramCard').style.display = 'none';
-
-            document.getElementById('hogContainer').style.display = 'none';
-            document.getElementById('hogImage').src = '';
-
-            document.getElementById('metadataResultCard').style.display = 'none';
-            document.getElementById('metadataDescription').textContent = '';
-            document.getElementById('metadataTagsBody').innerHTML = '';
-
-            document.getElementById('debugContainer').style.display = 'none';
-            document.getElementById('debugOutput').textContent = '';
-
-            // Reset histogram chart flag for new upload
-            let histogramRendered = false;
-
-            // Destroy existing histogram chart if it exists
-            if (window.histogramChartInstance && typeof window.histogramChartInstance.destroy === 'function') {
-                window.histogramChartInstance.destroy();
-                window.histogramChartInstance = null;
-            }
-
-            try {
-                // Start upload task
-                const startResponse = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!startResponse.ok) {
-                    throw new Error("Failed to start upload");
-                }
-
-                const startData = await startResponse.json();
-                const taskId = startData.task_id;
-                console.log("Task started:", taskId);
-
-
-                // Poll for progress
-                activePollInterval = setInterval(async () => {
-                    try {
-                        const progressResponse = await fetch('/progress/' + taskId);
-                        if (!progressResponse.ok) return;
-
-                        const taskData = await progressResponse.json();
-
-                        // Update UI
-                        const progress = taskData.progress || 0;
-                        progressBar.style.width = progress + '%';
-                        progressBar.textContent = progress + '%';
-
-                        // Calculate detailed status
-                        const timedOutList = taskData.timed_out_steps || [];
-                        const completedList = taskData.completed_steps || [];
-                        // Success = completed but not timed out
-                        const successCount = completedList.filter(s => !timedOutList.includes(s)).length;
-                        const timedOutCount = timedOutList.length;
-                        let errorCount = (taskData.status === 'Error') ? 1 : 0;
-
-                        // Special case: Preprocessing timeout (shows as Error but is a timeout)
-                        if (taskData.error && taskData.error.includes("timed out") && timedOutCount === 0) {
-                            // Treat as 1 timeout, 0 errors for display purpose if preferred, 
-                            // but strictly it's an error status with a message. 
-                            // The user asked "do not display 'Error' when one of STEPS has timeouted".
-                            // Assuming this refers to the 'timed_out_steps' list population.
-                            // If Preprocessing dies, we might not have steps list populated well.
-                            // We'll stick to the list-based logic mostly, but if status is Error and we have timeouts in list, assume that's what they mean.
-                        }
-
-                        let statusDisplay = taskData.status;
-
-                        if (taskData.status === 'Complete' || taskData.status === 'Error' || timedOutCount > 0) {
-                            statusDisplay = `Success: ${successCount}, Timed Out: ${timedOutCount}, Errors: ${errorCount}`;
-                            if (timedOutCount > 0) {
-                                statusDisplay += ` (Timeout: 10s)`;
-                            }
-                            if (taskData.status === 'Error' && errorCount > 0 && timedOutCount === 0) {
-                                // If it's a pure error without step timeouts, maybe keep original or append?
-                                // User said: "do not display 'Error' when one of STEPS has timeouted".
-                                // So if timedOutCount > 0, we use the summary.
-                                // If timedOutCount == 0 and status is Error, we probably show Error?
-                                // Let's show the summary + message from error object if needed, but prompt implies specific format.
-                                // If errorCount > 0, we show "Errors: 1".
-                            }
-                        }
-
-                        statusText.textContent = statusDisplay;
-
-                        if (taskData.steps) {
-                            stepList.style.display = 'block';
-                            stepList.innerHTML = '';
-
-                            const parallelSteps = ["Metadata Analysis", "Histogram Analysis", "HOG Analysis", "AI Classifier", "Fractal Analysis", "Uploading to Storage"];
-
-                            taskData.steps.forEach(step => {
-                                const li = document.createElement('li');
-                                li.className = 'step-item';
-
-                                const iconSpan = document.createElement('span');
-                                iconSpan.className = 'step-icon';
-
-                                const textSpan = document.createElement('span');
-                                textSpan.textContent = step;
-
-                                const isCompleted = taskData.completed_steps && taskData.completed_steps.includes(step);
-
-                                // Determine if running or timed out
-                                let isRunning = false;
-                                let isTimedOut = taskData.timed_out_steps && taskData.timed_out_steps.includes(step);
-
-                                if (!isCompleted && !isTimedOut) {
-                                    if (taskData.current_step === step) {
-                                        isRunning = true;
-                                    } else if (taskData.current_step === "Parallel Analysis & Upload" && parallelSteps.includes(step)) {
-                                        isRunning = true;
-                                    }
-                                }
-
-                                if (isTimedOut) {
-                                    iconSpan.textContent = '🕒';
-                                    iconSpan.classList.add('timed-out');
-                                    iconSpan.title = "Step timed out";
-                                } else if (isCompleted) {
-                                    iconSpan.textContent = '✓';
-                                    iconSpan.classList.add('done');
-                                } else if (isRunning) {
-                                    iconSpan.textContent = '↻';
-                                    iconSpan.classList.add('running');
-                                    textSpan.style.fontWeight = 'bold';
-                                } else {
-                                    iconSpan.textContent = '•';
-                                    iconSpan.classList.add('pending');
-                                }
-
-                                li.appendChild(iconSpan);
-                                li.appendChild(textSpan);
-                                stepList.appendChild(li);
-                            });
-                        }
-
-                        // Handle Partial Results
-                        if (taskData.partial_results) {
-                            // Display HOG image
-                            if (taskData.partial_results.hog_image_url) {
-                                const hogImg = document.getElementById('hogImage');
-                                // Only update if src is different to avoid flicker/reloading
-                                if (!hogImg.src.endsWith(taskData.partial_results.hog_image_url)) {
-                                    hogImg.src = taskData.partial_results.hog_image_url;
-                                    document.getElementById('hogContainer').style.display = 'block';
-                                }
-                            }
-
-                            // Display AI Detection Result
-                            const aiStepName = "AI Classifier";
-                            const isAiTimedOut = taskData.timed_out_steps && taskData.timed_out_steps.includes(aiStepName);
-
-                            if (isAiTimedOut) {
-                                const aiCard = document.getElementById('aiResultCard');
-                                const aiScore = document.getElementById('aiScoreDisplay');
-                                const aiDesc = document.getElementById('aiDescription');
-
-                                aiCard.style.display = 'block';
-                                aiScore.textContent = "Timed Out";
-                                aiScore.style.color = '#f39c12'; // Orange warning color
-                                aiDesc.textContent = "Analysis timed out.";
-                            } else if (taskData.partial_results.ai_probability !== undefined && taskData.partial_results.ai_probability !== null) {
-                                const aiCard = document.getElementById('aiResultCard');
-                                const aiScore = document.getElementById('aiScoreDisplay');
-                                const aiDesc = document.getElementById('aiDescription');
-                                const prob = taskData.partial_results.ai_probability;
-                                const percent = (prob * 100).toFixed(1);
-
-                                aiScore.textContent = percent + "% AI Probability";
-                                aiCard.style.display = 'block';
-
-                                // Color coding based on probability
-                                if (prob < 0.2) {
-                                    aiScore.style.color = '#27ae60'; // Safe
-                                    aiDesc.textContent = "Likely Human-Created";
-                                } else if (prob < 0.8) {
-                                    aiScore.style.color = '#f39c12'; // Warning
-                                    aiDesc.textContent = "Uncertain / Mixed";
-                                } else {
-                                    aiScore.style.color = '#c0392b'; // Danger
-                                    aiDesc.textContent = "Likely AI-Generated";
-                                }
-                            }
-
-                            // Display Fractal Stats
-                            if (taskData.timed_out_steps && taskData.timed_out_steps.includes('Fractal Analysis')) {
-                                document.getElementById('fractalResultCard').style.display = 'block';
-                                document.getElementById('fdDefaultDisplay').textContent = "Timed Out";
-                            } else if (taskData.partial_results.hasOwnProperty('fd_default')) {
-                                document.getElementById('fractalResultCard').style.display = 'block';
-                                const val = taskData.partial_results.fd_default;
-                                if (val !== null && val !== undefined) {
-                                    document.getElementById('fdDefaultDisplay').textContent = Number(val).toFixed(4);
-                                } else {
-                                    document.getElementById('fdDefaultDisplay').textContent = "N/A";
-                                }
-                            }
-
-                            // Display Metadata Stats
-                            if (taskData.timed_out_steps && taskData.timed_out_steps.includes('Metadata Analysis')) {
-                                document.getElementById('metadataResultCard').style.display = 'block';
-                                document.getElementById('metadataDescription').textContent = "Analysis timed out.";
-                                document.getElementById('metadataDescription').style.color = '#f39c12';
-                            } else if (taskData.partial_results.metadata_analysis) {
-                                const meta = taskData.partial_results.metadata_analysis;
-                                document.getElementById('metadataResultCard').style.display = 'block';
-                                const descEl = document.getElementById('metadataDescription');
-                                descEl.textContent = meta.description || "Analysis complete.";
-                                descEl.style.color = meta.is_suspicious ? '#c0392b' : '#27ae60';
-
-                                if (meta.tags) {
-                                    const body = document.getElementById('metadataTagsBody');
-                                    body.innerHTML = '';
-                                    Object.entries(meta.tags).sort().forEach(([key, val]) => {
-                                        const row = document.createElement('tr');
-                                        row.innerHTML = `<td style="padding: 4px; border-bottom: 1px solid #f9f9f9; color: #666; width: 40%;">${key}</td>
-                                                         <td style="padding: 4px; border-bottom: 1px solid #f9f9f9;">${val}</td>`;
-                                        body.appendChild(row);
-                                    });
-                                }
-                            }
-
-                            // Display Art Medium Stats
-                            if (taskData.timed_out_steps && taskData.timed_out_steps.includes('Art Medium Analysis')) {
-                                document.getElementById('artMediumResultCard').style.display = 'block';
-                                document.getElementById('artMediumDisplay').textContent = "Timed Out";
-                                document.getElementById('artMediumDescription').textContent = "Analysis timed out.";
-                            } else if (taskData.partial_results.art_medium) {
-                                const art = taskData.partial_results.art_medium;
-                                document.getElementById('artMediumResultCard').style.display = 'block';
-                                document.getElementById('artMediumDisplay').textContent = art.medium + " (" + (art.confidence * 100).toFixed(1) + "%)";
-                                document.getElementById('artMediumDescription').textContent = art.description || "";
-                            }
-
-                            // Display Histogram (only once)
-                            if (!histogramRendered && taskData.partial_results.histogram_r && taskData.partial_results.histogram_g && taskData.partial_results.histogram_b) {
-                                const histogramCard = document.getElementById('histogramCard');
-                                histogramCard.style.display = 'block';
-                                const ctxInst = document.getElementById('histogramChart').getContext('2d');
-                                window.histogramChartInstance = new Chart(ctxInst, {
-                                    type: 'line',
-                                    data: {
-                                        labels: Array.from({ length: 256 }, (_, i) => i),
-                                        datasets: [{
-                                            label: 'Red',
-                                            data: taskData.partial_results.histogram_r,
-                                            borderColor: 'rgba(255, 99, 132, 0.8)',
-                                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                                            borderWidth: 1,
-                                            pointRadius: 0,
-                                            fill: true
-                                        },
-                                        {
-                                            label: 'Green',
-                                            data: taskData.partial_results.histogram_g,
-                                            borderColor: 'rgba(75, 192, 192, 0.8)',
-                                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                                            borderWidth: 1,
-                                            pointRadius: 0,
-                                            fill: true
-                                        },
-                                        {
-                                            label: 'Blue',
-                                            data: taskData.partial_results.histogram_b,
-                                            borderColor: 'rgba(54, 162, 235, 0.8)',
-                                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                                            borderWidth: 1,
-                                            pointRadius: 0,
-                                            fill: true
-                                        }
-                                        ]
-                                    },
-                                    options: {
-                                        responsive: true,
-                                        scales: {
-                                            x: {
-                                                title: {
-                                                    display: true,
-                                                    text: 'Pixel Intensity (0-255)'
-                                                },
-                                                ticks: {
-                                                    maxTicksLimit: 10
-                                                }
-                                            },
-                                            y: {
-                                                title: {
-                                                    display: true,
-                                                    text: 'Frequency'
-                                                },
-                                                beginAtZero: true
-                                            }
-                                        },
-                                        plugins: {
-                                            legend: {
-                                                display: true,
-                                                position: 'top'
-                                            }
-                                        }
-                                    }
-                                });
-
-                                histogramRendered = true;
-                            }
-                        }
-
-                        if (taskData.status === "Abandoned") {
-                            clearInterval(activePollInterval);
-                            activePollInterval = null;
-                            progressContainer.style.display = 'none';
-                            // stepList.style.display = 'none';
-                            resultDiv.textContent = "Previous task was abandoned.";
-                            resultDiv.className = "error";
-                            return;
-                        }
-
-                        if (taskData.error) {
-                            clearInterval(activePollInterval);
-                            activePollInterval = null;
-                            progressContainer.style.display = 'none';
-                            // stepList.style.display = 'none';
-                            resultDiv.textContent = "Error: " + taskData.error;
-                            resultDiv.className = "error";
-                            return;
-                        }
-
-                        if (taskData.status === "Complete") {
-                            clearInterval(activePollInterval);
-                            activePollInterval = null;
-
-                            // Success!
-                            const data = taskData.result;
-                            console.log("Task complete:", data);
-
-                            // Show debug output
-                            const debugOutput = document.getElementById('debugOutput');
-                            debugOutput.textContent = JSON.stringify(data, null, 2);
-                            document.getElementById('debugContainer').style.display = 'block';
-
-                            resultDiv.textContent = "Success! ID: " + data.id;
-
-                            // Re-apply final results just in case partials missed anything or to confirm
-                            fetchStats(); // Refresh stats
-                        }
-                    } catch (e) {
-                        console.error("Polling error", e);
-                    }
-                }, 200); // Poll every 200ms
-
-            } catch (err) {
-                progressContainer.style.display = 'none';
-                resultDiv.textContent = "Error: " + err.message;
-            }
-        });
-
-        // Initial load
-        fetchStats();
     </script>
 </body>
 
