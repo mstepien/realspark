@@ -76,6 +76,18 @@ The preferred development workflow is using **VS Code Dev Containers**. This pro
 
 The application will be available at [http://localhost:8080](http://localhost:8080).
 
+#### Automatic Reload & Manual Restart
+
+When developing within the Dev Container, you have two options to ensure your Python code changes are reflected:
+
+1.  **Automatic Reload (Recommended)**: The `Dockerfile` is configured with the `--reload` flag. Any save to a `.py` file will trigger an automatic restart of the Uvicorn server.
+    *   *Note: If you have just updated your local files and your container was already running, you may need to **"Rebuild Container"** to apply the new `Dockerfile` configuration.*
+2.  **Manual Restart script**: If you don't want to rebuild the container, you can manually trigger a restart with auto-reload enabled by running:
+    ```bash
+    bash app_restart.sh
+    ```
+    This is useful if the auto-detection fails or if you've made changes to the environment.
+
 ## Testing
 
 ### Backend Tests (Python)
@@ -175,7 +187,7 @@ The project uses **Playwright** for browser-based integration testing of the com
 - ✅ Final results display with all cards visible
 - ✅ Step progression sequence and status indicators
 - ✅ UI element visibility flow
-- ✅ Timeout handling with clock icons (🕒)
+- ✅ Timeout handling
 - ✅ Multiple timeouts displayed correctly
 - ✅ Error handling and error messages
 - ✅ Invalid file upload rejection
