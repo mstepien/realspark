@@ -200,7 +200,7 @@ The project utilizes an **OpenAPI-driven development** workflow. The central sou
 ### When to run generation
 You **must** run the generation script whenever you modify the API definition in `openapi.yaml`. This is essential because:
 - **Backend (Python)**: The Pydantic models in `app/models.py` are automatically updated to match the latest schema. These models are used throughout `app/main.py`.
-- **Frontend (JavaScript)**: The Client SDK in `app/static/js/client/` is regenerated. Using the SDK ensures that the UI always uses the correct endpoints and data types, preventing runtime errors.
+- **Frontend (JavaScript)**: The UI uses standard `fetch()` calls and **Alpine.js** for reactivity. This ensures a lightweight, build-free frontend while maintaining alignment with the backend through manual implementation of the shared API contract.
 
 ### How to run generation
 The easiest way is to use the provided `npm` script:
@@ -217,7 +217,6 @@ bash generate-api.sh
 
 ### Underlying Tools
 - **Python Models**: Generated using `datamodel-code-generator` (installed automatically in `venv`). It parses `openapi.yaml` and produces `app/models.py`.
-- **JavaScript Client**: Generated using `@openapitools/openapi-generator-cli`. 
 
 
 ## Deploy with Docker

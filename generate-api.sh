@@ -24,11 +24,4 @@ if ! "$CODEGEN_BIN" --input openapi.yaml --output app/models.py; then
     exit 1
 fi
 
-echo "Generating JavaScript client SDK..."
-npx @openapitools/openapi-generator-cli generate \
-    -i openapi.yaml \
-    -g javascript \
-    -o app/static/js/client \
-    --additional-properties=useES6=true
-
-echo "API Generation Complete!"
+echo "API Generation for Python Complete!"

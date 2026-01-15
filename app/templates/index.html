@@ -261,6 +261,22 @@
             </div>
         </sl-card>
 
+        <!-- AI Insight Summary Card -->
+        <div x-show="partialResults?.summary" x-cloak style="margin-bottom: 2rem">
+            <sl-card id="summaryCard">
+                <div slot="header" style="display: flex; align-items: center; gap: 0.5rem">
+                    <i class="bi bi-stars" style="color: var(--sl-color-primary-600); font-size: 1.2rem"></i>
+                    <span style="font-weight: 600">AI Insight Summary</span>
+                </div>
+                <div
+                    style="font-size: 1.1rem; line-height: 1.6; color: var(--sl-color-neutral-800); font-weight: 500; padding: 0.5rem 0;">
+                    <i class="bi bi-quote"
+                        style="color: var(--sl-color-neutral-300); font-size: 1.5rem; vertical-align: middle; margin-right: 0.5rem"></i>
+                    <span x-text="partialResults.summary"></span>
+                </div>
+            </sl-card>
+        </div>
+
         <!-- Results Section (Visible when results start coming in) -->
         <div class="grid-2" x-show="partialResults || result" x-cloak>
 
