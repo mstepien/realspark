@@ -41,7 +41,8 @@ This application is aimed to count various statistics in uploaded images to deci
 │   │   ├── aiclassifiers.py  # AI classification logic (ViT)
 │   │   ├── fractaldim.py     # Fractal dimension computation
 │   │   ├── histogram.py      # Color histogram computation
-│   │   └── artmedium/        # Art Medium classification (DINOv2, CLIP)
+│   │   ├── artmedium/        # Art Medium classification (DINOv2, CLIP)
+│   │   └── summarizer.py     # AI Insight generation (Flan-T5)
 │   ├── static/               # Frontend assets
 │   │   └── js/client/        # Generated JS Client SDK [GENERATED]
 │   └── templates/            # Jinja2 HTML templates
@@ -296,6 +297,11 @@ The application performs a multi-stage analysis to identify the artistic medium 
     - **CLIP** (`openai/clip-vit-base-patch32`) provides zero-shot classification for the entire image against labels like *Watercolor, Oil, Acrylic, Digital painting*, etc.
 - **Cross-Verification**: The local texture findings from DINOv2 are contrasted with global CLIP labels to provide a nuanced description of the medium and its authenticity.
 
+### AI Insight Summary (LLM)
+A specialized "synthesizer" step that processes all previous technical findings into a single, professional conclusion for an appraiser.
+- **Model**: `google/flan-t5-small`.
+- **Architecture**: Instruction-tuned Text-to-Text Transfer Transformer (T5).
+- **Function**: It translates metrics like "85% AI probability" and "DINOv2 consistency scores" into a human-readable insight.
 
 ## API Reference
 
@@ -321,6 +327,7 @@ The application performs a multi-stage analysis to identify the artistic medium 
         7. `Art Medium Analysis`: DINOv2 patch analysis and CLIP classification.
         8. `Uploading to Storage`: Saving the original image to GCS.
         9. `Saving to Database`: Storing results and metadata in DuckDB.
+        10. `AI Insight Summary`: Generates the final human-readable conclusion.
     *   `current_step`: (string) The step currently executing.
     *   `completed_steps`: (list) List of completed steps.
     *   `partial_results`: (object, optional) Real-time results as they become available:
@@ -328,6 +335,7 @@ The application performs a multi-stage analysis to identify the artistic medium 
         *   `hog_image_url`: (string) URL to HOG visualization image.
         *   `ai_probability`: (float) AI detection probability (0.0-1.0).
         *   `fd_default`: (float) Fractal dimension value.
+        *   `summary`: (string) The generated AI Insight text.
     *   `result`: (object, optional) Final result when complete (includes `id`, `url`, and `stats`).
     *   `error`: (string, optional) Error message if failed.
 

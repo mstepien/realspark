@@ -9,6 +9,7 @@ from app.analysis import (
     prepare_image, compute_hog, detect_ai, 
     compute_fractal_stats, extract_metadata, analyze_art_medium
 )
+from app.analysis.summarizer import generate_summary, warmup_summarizer
 from app.analysis.histogram import compute_histogram
 import io
 import os
@@ -33,6 +34,7 @@ def on_startup():
     # Running in a separate thread to avoid blocking startup health checks if they exist,
     # though strict startup often waits.
     warmup_classifier()
+    warmup_summarizer()
 
 tasks = {}
 active_sessions = {} # session_id -> (task_id, asyncio.Task)
@@ -47,7 +49,8 @@ STEPS = [
     "Fractal Analysis",
     "Art Medium Analysis",
     "Uploading to Storage",
-    "Saving to Database"
+    "Saving to Database",
+    "AI Insight Summary"
 ]
 
 async def process_image_task(task_id: str, session_id: str, content: bytes, filename: str):
@@ -229,9 +232,24 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                 "metadata_analysis": metadata_analysis,
                 "art_medium_analysis": art_medium_analysis
             }
-            tasks[task_id]["progress"] = 85
+            tasks[task_id]["progress"] = 85 # Adjusted from 85 to 90 in the snippet, but 85 is correct here for before summary
 
-            # Phase 3: Final Sequential Steps (DB Only)
+            # Phase 3: AI Insight Summary (New Phase)
+            tasks[task_id]["status"] = "Generating AI Insight..."
+            tasks[task_id]["current_step"] = "AI Insight Summary"
+            tasks[task_id]["progress"] = 90 # New progress point
+            
+            # Run summarizer sequentially as it needs all previous results
+            summary = await asyncio.wait_for(
+                loop.run_in_executor(executor, generate_summary, analysis_results),
+                timeout=STEP_TIMEOUT
+            )
+            analysis_results["summary"] = summary
+            tasks[task_id]["partial_results"]["summary"] = summary
+            tasks[task_id]["completed_steps"].append("AI Insight Summary")
+            tasks[task_id]["progress"] = 98 # New progress point
+
+            # Phase 4: Final Sequential Steps (DB Only)
             tasks[task_id]["status"] = "Saving to Database..."
             tasks[task_id]["current_step"] = "Saving to Database"
             

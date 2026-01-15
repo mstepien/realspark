@@ -209,6 +209,11 @@ def mock_analysis_functions():
             "labels_weighted": {"Oil": 0.9, "Watercolor": 0.1}
         })
 
+    def mock_summary(analysis_data):
+        mock_control.trigger_error("summary")
+        time.sleep(mock_control.get_delay("summary"))
+        return "This is a mock AI Insight Summary."
+
     import app.main
     import app.analysis
     import app.analysis.histogram
@@ -220,7 +225,8 @@ def mock_analysis_functions():
         'compute_fractal_stats': app.main.compute_fractal_stats,
         'compute_histogram': app.main.compute_histogram,
         'extract_metadata': app.main.extract_metadata,
-        'analyze_art_medium': app.main.analyze_art_medium
+        'analyze_art_medium': app.main.analyze_art_medium,
+        'generate_summary': app.main.generate_summary
     }
 
     def mock_metadata(img):
@@ -251,6 +257,14 @@ def mock_analysis_functions():
     app.main.compute_histogram = app.analysis.histogram.compute_histogram = with_logging("histogram", mock_histogram)
     app.main.extract_metadata = app.analysis.extract_metadata = with_logging("metadata", mock_metadata)
     app.main.analyze_art_medium = app.analysis.analyze_art_medium = with_logging("art_medium", mock_art_medium)
+    
+    import app.analysis.summarizer
+    app.main.generate_summary = app.analysis.summarizer.generate_summary = with_logging("summary", mock_summary)
+    app.main.warmup_summarizer = app.analysis.summarizer.warmup_summarizer = lambda: None
+    
+    # Also skip the classifier warmup
+    import app.analysis.aiclassifiers
+    app.main.warmup_classifier = app.analysis.aiclassifiers.warmup_classifier = lambda: None
 
     yield
 

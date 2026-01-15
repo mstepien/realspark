@@ -33,7 +33,8 @@ def init_db():
                 url VARCHAR,
                 hog_features FLOAT[],
                 metadata_analysis VARCHAR,
-                art_medium_analysis VARCHAR
+                art_medium_analysis VARCHAR,
+                summary VARCHAR
             )
         """)
 
@@ -42,12 +43,13 @@ def save_stats(filename, url, stats):
         image_id = str(uuid.uuid4())
         import json
         con.execute("""
-            INSERT INTO image_stats (id, filename, upload_time, width, height, mean_color_r, mean_color_g, mean_color_b, url, hog_features, metadata_analysis, art_medium_analysis)
-            VALUES (?, ?, current_timestamp, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO image_stats (id, filename, upload_time, width, height, mean_color_r, mean_color_g, mean_color_b, url, hog_features, metadata_analysis, art_medium_analysis, summary)
+            VALUES (?, ?, current_timestamp, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (image_id, filename, stats['width'], stats['height'], 
             stats['mean_color'][0], stats['mean_color'][1], stats['mean_color'][2], url, stats.get('hog_features'),
             json.dumps(stats.get('metadata_analysis')),
-            json.dumps(stats.get('art_medium_analysis'))))
+            json.dumps(stats.get('art_medium_analysis')),
+            stats.get('summary')))
         return image_id
 
 def get_aggregate_stats():

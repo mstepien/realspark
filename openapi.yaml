@@ -134,6 +134,9 @@ components:
     ImageStats:
       type: object
       properties:
+        summary:
+          type: string
+          nullable: true
         width:
           type: integer
           nullable: true

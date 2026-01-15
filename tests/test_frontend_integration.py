@@ -59,7 +59,8 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
         "Fractal Analysis",
         "Art Medium Analysis",
         "Uploading to Storage",
-        "Saving to Database"
+        "Saving to Database",
+        "AI Insight Summary"
     ]
     
     step_items = page.locator(".step-item")
@@ -126,6 +127,11 @@ def test_partial_results_display_progressively(page: Page, live_server: str, tes
     expect(ai_card).to_be_visible(timeout=10000)
     expect(ai_card).to_contain_text("%")
 
+    # Verify Summary card
+    summary_card = page.locator("#summaryCard")
+    expect(summary_card).to_be_visible(timeout=15000)
+    expect(summary_card).to_contain_text("Summary")
+
 
 def test_final_results_display(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
     """
@@ -152,7 +158,7 @@ def test_final_results_display(page: Page, live_server: str, test_image_bytes: b
     
     # Verify all steps show completion checkmarks
     completed_icons = page.locator('.bi-check-circle-fill')
-    expect(completed_icons).to_have_count(9)
+    expect(completed_icons).to_have_count(10)
 
 
 def test_step_progression_sequence(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client):
