@@ -28,13 +28,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
+    && npx playwright install-deps \
     && rm -rf /var/lib/apt/lists/*
 
 # Install all dependencies (Prod + Dev)
 COPY requirements.txt requirements-dev.txt ./
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
     pip install -r requirements.txt && \
-    pip install -r requirements-dev.txt
+    pip install -r requirements-dev.txt && \
+    playwright install chromium
 
 # Create non-root user for development
 RUN mkdir -p tmp data cache/transformers && \

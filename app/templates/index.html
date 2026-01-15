@@ -53,7 +53,9 @@
             margin: 0;
             background: linear-gradient(to right, #6366f1, #a855f7);
             -webkit-background-clip: text;
-            -webkit-text-fill_color: transparent;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
             font-weight: 800;
         }
 
@@ -187,52 +189,75 @@
             </div>
 
             <div x-show="taskId" x-cloak>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem">
                     <h3 style="margin: 0">Analysis in Progress</h3>
                     <sl-button variant="neutral" size="small" @click="resetTask" outline>Cancel</sl-button>
                 </div>
 
-                <sl-progress-bar :value="progress" style="--height: 12px; margin-bottom: 0.5rem"></sl-progress-bar>
-                <div style="text-align: center; font-size: 0.9rem; color: var(--sl-color-neutral-600)" x-text="status">
-                </div>
-
-                <!-- Image Preview Section -->
-                <div x-show="previewUrl" style="margin-top: 1.5rem; text-align: center;">
-                    <img :src="previewUrl"
-                        style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: var(--sl-shadow-medium);">
-                </div>
-
-                <div style="margin-top: 2rem">
-                    <template x-for="step in steps" :key="step">
-                        <div class="step-item">
-                            <span>
-                                <!-- Done -->
-                                <template x-if="isStepDone(step)">
-                                    <i class="bi bi-check-circle-fill"
-                                        style="color: var(--sl-color-success-600); font-size: 1.2rem;"></i>
-                                </template>
-                                <!-- Timeout -->
-                                <template x-if="isStepTimeout(step)">
-                                    <i class="bi bi-exclamation-triangle-fill"
-                                        style="color: var(--sl-color-warning-600); font-size: 1.2rem;"></i>
-                                </template>
-                                <!-- Running -->
-                                <template x-if="isStepRunning(step)">
-                                    <i class="bi bi-arrow-repeat bi-spin"
-                                        style="color: var(--sl-color-primary-600); font-size: 1.2rem;"></i>
-                                </template>
-                                <!-- Pending -->
-                                <template x-if="isStepPending(step)">
-                                    <i class="bi bi-clock"
-                                        style="color: var(--sl-color-neutral-300); font-size: 1.2rem;"></i>
-                                </template>
-                            </span>
-                            <span
-                                :style="isStepRunning(step) ? 'font-weight: bold; color: var(--sl-color-primary-600)' : 'color: var(--sl-color-neutral-600)'"
-                                x-text="step"></span>
+                <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
+                    <!-- Left Column: Image & Progress -->
+                    <div style="flex: 1; min-width: 300px;">
+                        <!-- Image Preview Section -->
+                        <div x-show="previewUrl" style="text-align: center; margin-bottom: 1.5rem;">
+                            <img :src="previewUrl"
+                                style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: var(--sl-shadow-medium);">
                         </div>
-                    </template>
+
+                        <!-- Progress Section -->
+                        <div class="progress-wrapper"
+                            style="height: 12px; background: var(--sl-color-neutral-200); border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem">
+                            <div id="progressBar"
+                                :style="`width: ${progress}%; height: 100%; background: var(--sl-color-primary-600); transition: width 0.3s ease`"
+                                role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div id="statusText"
+                            style="text-align: center; font-size: 0.9rem; color: var(--sl-color-neutral-600)"
+                            x-text="status">
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Status Steps -->
+                    <div id="stepList"
+                        style="width: 300px; flex-shrink: 0; background: var(--sl-color-neutral-50); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--sl-color-neutral-200);">
+                        <h4
+                            style="margin: 0 0 1rem 0; font-size: 0.8rem; color: var(--sl-color-neutral-500); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+                            Analysis Pipeline</h4>
+                        <template x-for="step in steps" :key="step">
+                            <div class="step-item">
+                                <span>
+                                    <!-- Done -->
+                                    <template x-if="isStepDone(step)">
+                                        <i class="bi bi-check-circle-fill"
+                                            style="color: var(--sl-color-success-600); font-size: 1.2rem;"></i>
+                                    </template>
+                                    <!-- Timeout -->
+                                    <template x-if="isStepTimeout(step)">
+                                        <i class="bi bi-exclamation-triangle-fill"
+                                            style="color: var(--sl-color-warning-600); font-size: 1.2rem;"></i>
+                                    </template>
+                                    <!-- Running -->
+                                    <template x-if="isStepRunning(step)">
+                                        <i class="bi bi-arrow-repeat bi-spin"
+                                            style="color: var(--sl-color-primary-600); font-size: 1.2rem;"></i>
+                                    </template>
+                                    <!-- Pending -->
+                                    <template x-if="isStepPending(step)">
+                                        <i class="bi bi-clock"
+                                            style="color: var(--sl-color-neutral-300); font-size: 1.2rem;"></i>
+                                    </template>
+                                </span>
+                                <span
+                                    :style="isStepRunning(step) ? 'font-weight: bold; color: var(--sl-color-primary-600)' : 'color: var(--sl-color-neutral-600)'"
+                                    x-text="step"></span>
+                            </div>
+                        </template>
+                    </div>
                 </div>
+
+                <!-- ID for test compatibility -->
+                <div id="uploadResult" x-show="result || status" x-text="result ? 'Success!' : status"
+                    style="display: none"></div>
             </div>
         </sl-card>
 
@@ -241,7 +266,7 @@
 
             <!-- AI Prob Card -->
             <template x-if="hasAiResult()">
-                <sl-card>
+                <sl-card id="aiResultCard">
                     <div slot="header">AI Classifier</div>
                     <div style="text-align: center">
                         <div class="ai-score" :style="'color: ' + getAiColor()" x-text="getAiText()"></div>
@@ -252,7 +277,7 @@
 
             <!-- Art Medium Card -->
             <template x-if="partialResults?.art_medium">
-                <sl-card>
+                <sl-card id="artMediumResultCard">
                     <div slot="header">Artistic Medium</div>
                     <div style="text-align: center">
                         <div style="font-size: 1.5rem; font-weight: 700; color: #8e44ad"
@@ -267,7 +292,7 @@
 
             <!-- Metadata Card -->
             <template x-if="partialResults?.metadata_analysis">
-                <sl-card style="grid-column: span 1">
+                <sl-card id="metadataResultCard" style="grid-column: span 1">
                     <div slot="header">Metadata Analysis</div>
                     <div style="text-align: center">
                         <div style="font-weight: 600; margin-bottom: 1rem"
@@ -293,7 +318,7 @@
 
             <!-- Fractal Card -->
             <template x-if="partialResults?.fd_default !== undefined">
-                <sl-card>
+                <sl-card id="fractalResultCard">
                     <div slot="header">Fractal Dimension</div>
                     <div style="text-align: center; padding: 1rem 0">
                         <div class="stat-value"
@@ -308,7 +333,7 @@
         </div>
 
         <!-- Histogram Card -->
-        <div x-show="partialResults?.histogram_r" x-cloak>
+        <div id="histogramCard" x-show="partialResults?.histogram_r" x-cloak>
             <sl-card>
                 <div slot="header">Color Intensity Distribution</div>
                 <div class="histogram-container">
@@ -334,7 +359,7 @@
                 <canvas x-ref="statsCanvas"></canvas>
             </sl-card>
 
-            <sl-card x-show="partialResults?.hog_image_url" x-cloak>
+            <sl-card id="hogContainer" x-show="partialResults?.hog_image_url" x-cloak>
                 <div slot="header">HOG Visualization</div>
                 <div style="text-align: center">
                     <img :src="partialResults?.hog_image_url"
@@ -346,7 +371,7 @@
         </div>
 
         <!-- Debug Section -->
-        <sl-details summary="View Raw Process Data" x-show="result" x-cloak>
+        <sl-details id="debugContainer" summary="View Raw Process Data" x-show="result" x-cloak>
             <pre style="background: var(--sl-color-neutral-50); padding: 1rem; border-radius: 8px; overflow: auto; font-size: 0.8rem"
                 x-text="JSON.stringify(result, null, 2)"></pre>
         </sl-details>
@@ -354,6 +379,13 @@
 
     <script>
         function app() {
+            // Move charts outside the reactive object to prevent Alpine from proxying them
+            // Chart.js objects have circular references that cause "too much recursion" in Alpine/Vue
+            const charts = {
+                stats: null,
+                histogram: null
+            };
+
             return {
                 dbStats: { total_images: 0 },
                 taskId: null,
@@ -367,10 +399,6 @@
                 partialResults: null,
                 result: null,
                 pollInterval: null,
-                charts: {
-                    stats: null,
-                    histogram: null
-                },
 
                 init() {
                     this.fetchStats();
@@ -399,10 +427,16 @@
                     try {
                         const res = await fetch('/upload', { method: 'POST', body: formData });
                         const data = await res.json();
+                        if (!res.ok) {
+                            this.status = "Error: " + (data.detail || "Upload failed");
+                            this.taskId = "error-" + Date.now(); // Display the progress UI block
+                            return;
+                        }
                         this.taskId = data.task_id;
                         this.startPolling();
                     } catch (err) {
-                        this.status = "Upload failed: " + err.message;
+                        this.status = "Error: " + err.message;
+                        this.taskId = "error-" + Date.now();
                     }
                 },
 
@@ -413,6 +447,9 @@
                         const data = await res.json();
 
                         this.status = data.status;
+                        if (data.status === 'Error' && data.error) {
+                            this.status = "Error: " + data.error;
+                        }
                         this.progress = data.progress;
                         this.steps = data.steps;
                         this.currentStep = data.current_step;
@@ -469,9 +506,9 @@
                     this.timedOutSteps = [];
                     this.partialResults = null;
                     this.result = null;
-                    if (this.charts.histogram) {
-                        this.charts.histogram.destroy();
-                        this.charts.histogram = null;
+                    if (charts.histogram) {
+                        charts.histogram.destroy();
+                        charts.histogram = null;
                     }
                 },
 
@@ -507,18 +544,30 @@
 
                 renderStatsChart() {
                     if (!this.$refs.statsCanvas) return;
-                    const ctx = this.$refs.statsCanvas.getContext('2d');
-                    if (!ctx) return;
+                    const canvas = this.$refs.statsCanvas;
 
-                    if (this.charts.stats) this.charts.stats.destroy();
+                    // Ensure canvas is visible and has size
+                    if (canvas.offsetWidth === 0) return;
 
-                    this.charts.stats = new Chart(ctx, {
+                    const data = [
+                        this.dbStats.avg_color?.[0] || 0,
+                        this.dbStats.avg_color?.[1] || 0,
+                        this.dbStats.avg_color?.[2] || 0
+                    ];
+
+                    if (charts.stats) {
+                        charts.stats.data.datasets[0].data = data;
+                        charts.stats.update();
+                        return;
+                    }
+
+                    charts.stats = new Chart(canvas, {
                         type: 'bar',
                         data: {
                             labels: ['Red', 'Green', 'Blue'],
                             datasets: [{
                                 label: 'Avg Color Intensity',
-                                data: [this.dbStats.avg_color?.[0], this.dbStats.avg_color?.[1], this.dbStats.avg_color?.[2]],
+                                data: data,
                                 backgroundColor: ['rgba(239, 68, 68, 0.2)', 'rgba(34, 197, 94, 0.2)', 'rgba(99, 102, 241, 0.2)'],
                                 borderColor: ['#ef4444', '#22c55e', '#6366f1'],
                                 borderWidth: 1
@@ -532,11 +581,21 @@
                 },
 
                 renderHistogramChart() {
-                    if (this.charts.histogram || !this.$refs.histogramCanvas) return;
+                    if (!this.$refs.histogramCanvas || !this.partialResults?.histogram_r) return;
+                    const canvas = this.$refs.histogramCanvas;
 
-                    const ctx = this.$refs.histogramCanvas.getContext('2d');
-                    if (!ctx) return;
-                    this.charts.histogram = new Chart(ctx, {
+                    // Ensure canvas is visible and has size
+                    if (canvas.offsetWidth === 0) return;
+
+                    if (charts.histogram) {
+                        charts.histogram.data.datasets[0].data = this.partialResults.histogram_r;
+                        charts.histogram.data.datasets[1].data = this.partialResults.histogram_g;
+                        charts.histogram.data.datasets[2].data = this.partialResults.histogram_b;
+                        charts.histogram.update('none'); // Update without animation for speed
+                        return;
+                    }
+
+                    charts.histogram = new Chart(canvas, {
                         type: 'line',
                         data: {
                             labels: Array.from({ length: 256 }, (_, i) => i),

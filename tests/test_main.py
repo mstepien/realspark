@@ -42,7 +42,7 @@ def test_read_root():
         async with AsyncClient(transport=transport, base_url="http://testserver") as client:
             response = await client.get("/")
             assert response.status_code == 200
-            assert "Is that image created by AI?" in response.text
+            assert "RealSpark" in response.text
     run_async(run())
 
 def test_get_stats_empty(mock_db_connection):
