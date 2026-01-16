@@ -366,6 +366,10 @@ The application only downloads and loads pre-trained weights from verified offic
 ### User Permissions
 Docker containers run as a non-root user (`myuser`) to prevent privilege escalation within the container environment.
 
-
-## TODO:
-- Read embedded SynthID digital watermark (Requires Google Cloud Vertex AI SDK; no offline library available)
+## Licensing
+- **Application Code**: Licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+- **AI Models**: All pre-trained models used in this project are released under the **Apache 2.0 License**:
+    - AI Classifier: `Ateeqq/ai-vs-human-image-detector`
+    - Texture Analysis: `facebook/dinov2-base`
+    - Labeling: `openai/clip-vit-base-patch32`
+    - Summarizer: `google/flan-t5-small`
