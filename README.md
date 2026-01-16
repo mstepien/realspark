@@ -81,7 +81,7 @@ The application will be available at [http://localhost:8080](http://localhost:80
 
 When developing within the Dev Container, you have two options to ensure your Python code changes are reflected:
 
-1.  **Automatic Reload (Recommended)**: The `Dockerfile` is configured with the `--reload` flag. Any save to a `.py` file will trigger an automatic restart of the Uvicorn server.
+1.  **Automatic Reload (Recommended)**: The `Dockerfile` is configured with the `--reload`. Any save to a `.py` file will trigger an automatic restart of the Uvicorn server. Speficically use `--reload-dir app` flag to exclude observing frequent changes of `.py` in /cache directory.
     *   *Note: If you have just updated your local files and your container was already running, you may need to **"Rebuild Container"** to apply the new `Dockerfile` configuration.*
 2.  **Manual Restart script**: If you don't want to rebuild the container, you can manually trigger a restart with auto-reload enabled by running:
     ```bash
@@ -364,7 +364,7 @@ Due to the use of specific AI/ML frameworks (PyTorch 2.2+, Transformers), the pr
 The application only downloads and loads pre-trained weights from verified official repositories (OpenAI, Facebook/Meta) on Hugging Face.
 
 ### User Permissions
-Docker containers run as a non-root user (`myuser`) to prevent privilege escalation within the container environment.
+Docker containers run as a non-root user (`vscode`) to prevent privilege escalation within the container environment.
 
 ## Licensing
 - **Application Code**: Licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.

@@ -6,14 +6,10 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
-      - data_volume:/app/data
-      - tmp_volume:/app/tmp
-      - cache_volume:/app/cache/transformers
+      - .:/app
+      - ./data:/app/data
+      - ./tmp:/app/tmp
+      - ./cache/transformers:/app/cache/transformers
     environment:
       - DATABASE_PATH=/app/data/image_stats.duckdb
     restart: always
-
-volumes:
-  data_volume:
-  tmp_volume:
-  cache_volume:

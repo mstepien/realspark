@@ -22,8 +22,9 @@
             }
         }
     },
-    "remoteUser": "myuser",
+    "remoteUser": "vscode",
     "forwardPorts": [
         8080
-    ]
+    ],
+    "postStartCommand": "bash app_restart.sh"
 }

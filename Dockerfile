@@ -40,15 +40,15 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
 
 # Create non-root user for development
 RUN mkdir -p tmp data cache/transformers && \
-    useradd -m myuser && \
-    echo "myuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
-    chown -R myuser:myuser /app
+    useradd -m vscode && \
+    echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    chown -R vscode:vscode /app
 
-USER myuser
-COPY --chown=myuser:myuser . .
+USER vscode
+COPY --chown=vscode:vscode . .
 
 EXPOSE 8080
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload", "--reload-dir", "app"]
 
 
 # --- Stage 3: Production (Lean Runtime) ---
@@ -61,11 +61,11 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
 
 # Create non-root user for security
 RUN mkdir -p tmp data cache/transformers && \
-    useradd -m myuser && \
-    chown -R myuser:myuser /app
+    useradd -m vscode && \
+    chown -R vscode:vscode /app
 
-USER myuser
-COPY --chown=myuser:myuser . .
+USER vscode
+COPY --chown=vscode:vscode . .
 
 EXPOSE 8080
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
