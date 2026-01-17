@@ -172,8 +172,19 @@
 <body x-data="app()">
     <div class="container">
         <header class="header">
-            <h1>RealSpark</h1>
-            <p>Advanced Image Authentication & Metadata Analysis</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex: 1"></div>
+                <h1>RealSpark</h1>
+                <div
+                    style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 500;">
+                    <i class="bi bi-book-half"
+                        :style="modelsStatus === 'ready' ? 'color: var(--sl-color-success-600)' : 'color: var(--sl-color-warning-600)'"></i>
+                    <span
+                        :style="modelsStatus === 'ready' ? 'color: var(--sl-color-success-700)' : 'color: var(--sl-color-warning-700)'"
+                        x-text="modelsStatus === 'ready' ? 'Models Ready' : 'LLM Warming Up...'"></span>
+                </div>
+            </div>
+            <p>AI Art Detector & Analyzer</p>
         </header>
 
         <!-- Main Upload Card -->
@@ -415,10 +426,25 @@
                 partialResults: null,
                 result: null,
                 pollInterval: null,
+                modelsStatus: 'loading',
 
                 init() {
                     this.fetchStats();
+                    this.fetchModelsStatus();
                     setInterval(() => this.fetchStats(), 30000); // Background refresh
+                    setInterval(() => {
+                        if (this.modelsStatus !== 'ready') this.fetchModelsStatus();
+                    }, 5000);
+                },
+
+                async fetchModelsStatus() {
+                    try {
+                        const res = await fetch('/ready_models');
+                        const data = await res.json();
+                        this.modelsStatus = data.status;
+                    } catch (err) {
+                        console.error("Failed to fetch models status:", err);
+                    }
                 },
 
                 async fetchStats() {
@@ -501,7 +527,7 @@
                     if (this.isStepDone(step) || this.isStepTimeout(step)) return false;
                     if (this.currentStep === step) return true;
                     // Handle parallel cluster state
-                    const parallelSteps = ["Metadata Analysis", "Histogram Analysis", "HOG Analysis", "AI Classifier", "Fractal Analysis", "Uploading to Storage", "Art Medium Analysis"];
+                    const parallelSteps = ["Metadata Analysis", "Histogram Analysis", "HOG Analysis", "AI Classifier", "Fractal Dimension", "Uploading to Storage", "Art Medium Analysis"];
                     return (this.currentStep === "Parallel Analysis & Upload" && parallelSteps.includes(step));
                 },
                 isStepPending(step) {

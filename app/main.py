@@ -27,18 +27,26 @@ templates = Jinja2Templates(directory="app/templates")
 
 from app.analysis.aiclassifiers import warmup_classifier
 
+executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
+models_ready = False
+
+async def warmup_models():
+    global models_ready
+    loop = asyncio.get_event_loop()
+    # Use the executor to avoid blocking the event loop during heavy model loads
+    await loop.run_in_executor(executor, warmup_classifier)
+    await loop.run_in_executor(executor, warmup_summarizer)
+    models_ready = True
+    uvicorn.config.logger.info("Deep learning models warmed up successfully.")
+
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
     init_db()
-    # Preload model to prevent first-request timeout
-    # Running in a separate thread to avoid blocking startup health checks if they exist,
-    # though strict startup often waits.
-    warmup_classifier()
-    warmup_summarizer()
+    # Start warmup in background
+    asyncio.create_task(warmup_models())
 
 tasks = {}
 active_sessions = {} # session_id -> (task_id, asyncio.Task)
-executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
 STEP_TIMEOUT = 90 # seconds for each individual step
 STEPS = [
     "Preprocessing",
@@ -46,12 +54,13 @@ STEPS = [
     "Histogram Analysis",
     "HOG Analysis", 
     "AI Classifier",
-    "Fractal Analysis",
+    "Fractal Dimension",
     "Art Medium Analysis",
     "Uploading to Storage",
     "Saving to Database",
     "AI Insight Summary"
 ]
+
 
 async def process_image_task(task_id: str, session_id: str, content: bytes, filename: str):
     logger = uvicorn.config.logger
@@ -135,37 +144,28 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                         loop.run_in_executor(executor, compute_fractal_stats, np_image),
                         timeout=STEP_TIMEOUT
                     )
-                    logger.info(f"Fractal analysis computed: {f_stats}")
+                    logger.info(f"Fractal dimension computed: {f_stats}")
                     tasks[task_id]["partial_results"].update(f_stats)
-                    tasks[task_id]["completed_steps"].append("Fractal Analysis")
+                    tasks[task_id]["completed_steps"].append("Fractal Dimension")
                     return f_stats
                 except asyncio.TimeoutError:
-                    logger.warning(f"Fractal analysis timed out for task {task_id}")
+                    logger.warning(f"Fractal dimension timed out for task {task_id}")
                     # Mark as complete so UI doesn't hang, but return default/empty stats
                     tasks[task_id]["partial_results"].update({"fd_default": None})
-                    tasks[task_id]["completed_steps"].append("Fractal Analysis")
-                    tasks[task_id]["timed_out_steps"].append("Fractal Analysis")
+                    tasks[task_id]["completed_steps"].append("Fractal Dimension")
+                    tasks[task_id]["timed_out_steps"].append("Fractal Dimension")
                     return {"fd_default": None} 
                 except Exception as e:
-                    logger.error(f"Fractal analysis failed with error: {e}")
+                    logger.error(f"Fractal dimension failed with error: {e}")
                     tasks[task_id]["partial_results"].update({"fd_default": None})
-                    tasks[task_id]["completed_steps"].append("Fractal Analysis")
-                    tasks[task_id]["timed_out_steps"].append("Fractal Analysis")
+                    tasks[task_id]["completed_steps"].append("Fractal Dimension")
+                    tasks[task_id]["timed_out_steps"].append("Fractal Dimension")
                     return {"fd_default": None}
 
             async def run_upload():
-                try:
-                    file_obj = io.BytesIO(content)
-                    url = await asyncio.wait_for(
-                        upload_to_gcs(file_obj, filename),
-                        timeout=STEP_TIMEOUT
-                    )
-                    tasks[task_id]["completed_steps"].append("Uploading to Storage")
-                    return url
-                except asyncio.TimeoutError:
-                    logger.warning(f"Upload timed out for task {task_id}")
-                    tasks[task_id]["timed_out_steps"].append("Uploading to Storage")
-                    return None
+                # Mocking upload for debugging
+                tasks[task_id]["completed_steps"].append("Uploading to Storage")
+                return f"https://mock-gcs.example.com/{filename}"
 
             async def run_metadata():
                 try:
@@ -210,8 +210,9 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
             res_hist, res_hog, res_ai, res_frac, res_upload, res_meta, res_art = results
 
             # Check for errors in parallel cluster
-            for result in results:
+            for i, result in enumerate(results):
                 if isinstance(result, Exception):
+                    logger.error(f"DEBUG: Task {i} failed with error: {result}")
                     raise result
 
             fd, hog_image_buffer, hog_filename = res_hog
@@ -234,7 +235,7 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
             }
             tasks[task_id]["progress"] = 85 # Adjusted from 85 to 90 in the snippet, but 85 is correct here for before summary
 
-            # Phase 3: AI Insight Summary (New Phase)
+            # Phase 3: AI Insight Summary 
             tasks[task_id]["status"] = "Generating AI Insight..."
             tasks[task_id]["current_step"] = "AI Insight Summary"
             tasks[task_id]["progress"] = 90 # New progress point
@@ -347,6 +348,10 @@ async def get_task_status(task_id: str):
 @app.get("/stats", response_model=AggregateStats)
 def get_stats():
     return get_aggregate_stats()
+
+@app.get("/ready_models")
+async def check_ready():
+    return {"status": "ready" if models_ready else "loading"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8080)

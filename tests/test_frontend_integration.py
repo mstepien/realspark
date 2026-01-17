@@ -56,7 +56,7 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
         "Histogram Analysis",
         "HOG Analysis",
         "AI Classifier",
-        "Fractal Analysis",
+        "Fractal Dimension",
         "Art Medium Analysis",
         "Uploading to Storage",
         "Saving to Database",
@@ -228,8 +228,8 @@ def test_timeout_handling_in_ui(page: Page, live_server: str, test_image_bytes: 
         "buffer": test_image_bytes
     })
     
-    # Verify timeout icon appears for Fractal Analysis step
-    fractal_step = page.locator('.step-item:has-text("Fractal Analysis")')
+    # Verify timeout icon appears for Fractal Dimension step
+    fractal_step = page.locator('.step-item:has-text("Fractal Dimension")')
     timeout_icon = fractal_step.locator('.bi-exclamation-triangle-fill')
     expect(timeout_icon).to_be_visible(timeout=10000)
     

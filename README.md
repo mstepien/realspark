@@ -1,6 +1,44 @@
-# Image Analysis for Art Authentication
+# RealSpark. AI Art Detector & Analyzer
 
-This application is aimed to count various statistics in uploaded images to decide the chances of whether the image was AI-generated or human-made. The image the application is focused on is photos of art, specifically paintings on canvas, board, or metal. 
+This application is aimed to count various statistics in uploaded images to decide the chances of whether the image was AI-generated or human-made. The image the application is focused on is photos of art, specifically paintings on canvas, board, or metal.
+
+## Features
+
+### AI Image Detection (Offline)
+The application uses a pre-trained **Vision Transformer (ViT)** model locally for high-accuracy detection of AI-generated content.
+- **Model**: `Ateeqq/ai-vs-human-image-detector` (available on Hugging Face).
+- **Architecture**: Vision Transformer (ViT).
+- **Implementation**: Uses `transformers` and `torch` for offline inference.
+
+It provides a probability score (0.0 to 1.0) where higher values indicate high likelihood of AI generation.
+
+### HOG Feature Visualization
+Histogram of Oriented Gradients (HOG) analysis is performed to identify structural patterns in the image, which are then visualized to show the detected features.
+
+### Art Medium Analysis (DINOv2 + CLIP)
+The application performs a multi-stage analysis to identify the artistic medium and verify its physical consistency.
+- **Physical Texture Analysis (DINOv2)**: 
+    - The image is tiled into overlapping 224x224 patches.
+    - **DINOv2** (`facebook/dinov2-base`) generates high-dimensional embeddings for each patch.
+    - **Vector Search & Clustering**: Patches are compared using cosine similarity. Repeatable textures (e.g., "scratchiness" of a dry brush or specific impasto strokes) cluster together.
+    - **Consistency Scoring**: Measures texture uniformity. Low consistency suggests complex physical brushwork, while high consistency often points to digital media or uniform washes.
+- **High-Level Labeling (CLIP)**:
+    - **CLIP** (`openai/clip-vit-base-patch32`) provides zero-shot classification for the entire image against labels like *Watercolor, Oil, Acrylic, Digital painting*, etc.
+- **Cross-Verification**: The local texture findings from DINOv2 are contrasted with global CLIP labels to provide a nuanced description of the medium and its authenticity.
+
+### AI Insight Summary (LLM)
+A specialized "synthesizer" step that processes all previous technical findings into a single, professional conclusion for an appraiser.
+- **Model**: `google/flan-t5-small`.
+- **Architecture**: Instruction-tuned Text-to-Text Transfer Transformer (T5).
+- **Function**: It translates metrics like "85% AI probability" and "DINOv2 consistency scores" into a human-readable insight.
+
+## How to Use
+
+1.  **Web Interface**:
+    *   Open your browser and navigate to `http://localhost:8080`.
+    *   Use the upload form to select an image file (supported formats: JPEG, PNG, etc.).
+    *   Submit the form to upload the image.
+    *   The application will analyze the image and display statistics related to its composition and features.
 
 ## Prerequisites
 
@@ -26,6 +64,33 @@ This application is aimed to count various statistics in uploaded images to deci
     # For development (tests, linting, api-gen):
     pip install -r requirements-dev.txt
     ```
+
+## Development Workflow
+
+The preferred development workflow is using **VS Code Dev Containers**. This project uses a **multi-stage Dockerfile** to provide a perfectly configured environment.
+
+- **Automated Setup**: Installs Python 3.12, Node.js v18 (for API generation), and all development tools.
+- **Isolated Environment**: Bypasses local dependency conflicts (especially with PyTorch/Transformers on Intel Macs).
+- **Integrated Tools**: Pre-configures extensions and services (Formatter: `ruff`, Linter: `PyLance`).
+
+**How to start:**
+1. Open the project folder in VS Code.
+2. Click **"Reopen in Container"** when prompted (or via the Command Palette).
+3. The environment will automatically build using the `development` target, installing both production and development requirements.
+
+The application will be available at [http://localhost:8080](http://localhost:8080).
+
+### Automatic Reload & Manual Restart
+
+When developing within the Dev Container, you have two options to ensure your Python code changes are reflected:
+
+1.  **Automatic Reload (Recommended)**: The `Dockerfile` is configured with the `--reload`. Any save to a `.py` file will trigger an automatic restart of the Uvicorn server. Speficically use `--reload-dir app` flag to exclude observing frequent changes of `.py` in /cache directory.
+    *   *Note: If you have just updated your local files and your container was already running, you may need to **"Rebuild Container"** to apply the new `Dockerfile` configuration.*
+2.  **Manual Restart script**: If you don't want to rebuild the container, you can manually trigger a restart with auto-reload enabled by running:
+    ```bash
+    bash app_restart.sh
+    ```
+    This is useful if the auto-detection fails or if you've made changes to the environment.
 
 ## Project Structure
 ```text
@@ -61,33 +126,6 @@ This application is aimed to count various statistics in uploaded images to deci
 ├── requirements-dev.txt      # Development & Test dependencies
 └── ...
 ```
-
-### Developing with VS Code Dev Containers (Recommended)
-
-The preferred development workflow is using **VS Code Dev Containers**. This project uses a **multi-stage Dockerfile** to provide a perfectly configured environment.
-
-- **Automated Setup**: Installs Python 3.12, Node.js v18 (for API generation), and all development tools.
-- **Isolated Environment**: Bypasses local dependency conflicts (especially with PyTorch/Transformers on Intel Macs).
-- **Integrated Tools**: Pre-configures extensions and services (Formatter: `ruff`, Linter: `PyLance`).
-
-**How to start:**
-1. Open the project folder in VS Code.
-2. Click **"Reopen in Container"** when prompted (or via the Command Palette).
-3. The environment will automatically build using the `development` target, installing both production and development requirements.
-
-The application will be available at [http://localhost:8080](http://localhost:8080).
-
-#### Automatic Reload & Manual Restart
-
-When developing within the Dev Container, you have two options to ensure your Python code changes are reflected:
-
-1.  **Automatic Reload (Recommended)**: The `Dockerfile` is configured with the `--reload`. Any save to a `.py` file will trigger an automatic restart of the Uvicorn server. Speficically use `--reload-dir app` flag to exclude observing frequent changes of `.py` in /cache directory.
-    *   *Note: If you have just updated your local files and your container was already running, you may need to **"Rebuild Container"** to apply the new `Dockerfile` configuration.*
-2.  **Manual Restart script**: If you don't want to rebuild the container, you can manually trigger a restart with auto-reload enabled by running:
-    ```bash
-    bash app_restart.sh
-    ```
-    This is useful if the auto-detection fails or if you've made changes to the environment.
 
 ## Testing
 
@@ -265,44 +303,6 @@ You can pass environment variables to the container for custom configuration (e.
 - `GCS_BUCKET_NAME`: Set your Google Cloud Storage bucket name.
 - `GOOGLE_APPLICATION_CREDENTIALS`: Path to your service account JSON file (ensure the file is also mounted as a volume).
 
-## How to Use the App
-
-1.  **Web Interface**:
-    *   Open your browser and navigate to `http://localhost:8080`.
-    *   Use the upload form to select an image file (supported formats: JPEG, PNG, etc.).
-    *   Submit the form to upload the image.
-    *   The application will analyze the image and display statistics related to its composition and features.
-
-## Features
-
-### AI Image Detection (Offline)
-The application uses a pre-trained **Vision Transformer (ViT)** model locally for high-accuracy detection of AI-generated content.
-- **Model**: `Ateeqq/ai-vs-human-image-detector` (available on Hugging Face).
-- **Architecture**: Vision Transformer (ViT).
-- **Implementation**: Uses `transformers` and `torch` for offline inference.
-
-It provides a probability score (0.0 to 1.0) where higher values indicate high likelihood of AI generation.
-
-### HOG Feature Visualization
-Histogram of Oriented Gradients (HOG) analysis is performed to identify structural patterns in the image, which are then visualized to show the detected features.
-
-### Art Medium Analysis (DINOv2 + CLIP)
-The application performs a multi-stage analysis to identify the artistic medium and verify its physical consistency.
-- **Physical Texture Analysis (DINOv2)**: 
-    - The image is tiled into overlapping 224x224 patches.
-    - **DINOv2** (`facebook/dinov2-base`) generates high-dimensional embeddings for each patch.
-    - **Vector Search & Clustering**: Patches are compared using cosine similarity. Repeatable textures (e.g., "scratchiness" of a dry brush or specific impasto strokes) cluster together.
-    - **Consistency Scoring**: Measures texture uniformity. Low consistency suggests complex physical brushwork, while high consistency often points to digital media or uniform washes.
-- **High-Level Labeling (CLIP)**:
-    - **CLIP** (`openai/clip-vit-base-patch32`) provides zero-shot classification for the entire image against labels like *Watercolor, Oil, Acrylic, Digital painting*, etc.
-- **Cross-Verification**: The local texture findings from DINOv2 are contrasted with global CLIP labels to provide a nuanced description of the medium and its authenticity.
-
-### AI Insight Summary (LLM)
-A specialized "synthesizer" step that processes all previous technical findings into a single, professional conclusion for an appraiser.
-- **Model**: `google/flan-t5-small`.
-- **Architecture**: Instruction-tuned Text-to-Text Transfer Transformer (T5).
-- **Function**: It translates metrics like "85% AI probability" and "DINOv2 consistency scores" into a human-readable insight.
-
 ## API Reference
 
 ### Upload Image
@@ -323,7 +323,7 @@ A specialized "synthesizer" step that processes all previous technical findings 
         3. `Histogram Analysis`: Computing RGB color histograms.
         4. `HOG Analysis`: Computing Histogram of Oriented Gradients for structural patterns.
         5. `AI Classifier`: Running ViT inference for AI-vs-human detection.
-        6. `Fractal Analysis`: Computing fractal dimensionality.
+        6. `Fractal Dimension`: Computing fractal dimensionality.
         7. `Art Medium Analysis`: DINOv2 patch analysis and CLIP classification.
         8. `Uploading to Storage`: Saving the original image to GCS.
         9. `Saving to Database`: Storing results and metadata in DuckDB.

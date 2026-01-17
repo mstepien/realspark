@@ -31,12 +31,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && npx playwright install-deps \
     && rm -rf /var/lib/apt/lists/*
 
+# Set Playwright to install browsers in a global location accessible by all users
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/local/share/playwright
+
 # Install all dependencies (Prod + Dev)
 COPY requirements.txt requirements-dev.txt ./
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
     pip install -r requirements.txt && \
     pip install -r requirements-dev.txt && \
-    playwright install chromium
+    playwright install chromium && \
+    chmod -R 755 /usr/local/share/playwright
 
 # Create non-root user for development
 RUN mkdir -p tmp data cache/transformers && \

@@ -33,5 +33,5 @@ def detect_ai(image: Image.Image):
                 return float(res['score'])
         return 0.0
     except Exception as e:
-        print(f"AI detection error: {e}")
+        print(f"AI classifier error: {e}")
         return None
