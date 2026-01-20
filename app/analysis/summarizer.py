@@ -48,10 +48,20 @@ def generate_summary(analysis_data: dict) -> str:
 
         # Simplified prompt for small models
         # The model has a 512-token limit (including input/output)
+
+        # Instruction + Example 1: ~90 tokens.
+        # Example 2: ~80 tokens.
+        # Real Input (Variable): ~40 tokens.
+        # Prompt Total: ~210 tokens.
+        # Output Budget (max_new_tokens): 120 tokens.
+        # Cumulative Total: ~330 tokens.
+        # This leaves us with a healthy buffer of ~180 tokens before hitting the 512-limit.           
         prompt = (
             f"Compile Input into 3 long sentences as Output.\n"
-            f"Input: 10% AI probability. Medium is Canvas. No specific objects. Metadata is clean. Complexity is standard.\n"
+            f"Input: 10% AI probability. Medium is Canvas (90% conf). No objects. Metadata is clean. Complexity is standard.\n"
             f"Output: The image shows a low 10% AI probability and is identified as a canvas work with no suspicious objects found. The metadata is clean and the complexity is standard. These factors suggest the piece is likely authentic.\n"
+            f"Input: 85% AI score. Medium is Digital. Detected objects: person, signature. Metadata is suspicious. Fractal is 2.8.\n"
+            f"Output: This image has a high 85% AI score and is classified as digital art, with specific objects like a person and signature identified. The metadata is marked as suspicious and the fractal complexity is high at 2.8. Overall, these technical markers strongly indicate the work is AI-generated.\n"
             f"Input: {ai_text}. {medium_text}. {det_text} {metadata_text}. {fractal_text}.\n"
             f"Output:"
         )
@@ -68,10 +78,10 @@ def generate_summary(analysis_data: dict) -> str:
             no_repeat_ngram_size=3
         )
         
-        # Logging raw performance to a specific file
-        with open("/app/debug_summarizer.log", "a") as f:
-            f.write(f"\n!!!! DEBUG SUMMARIZER START !!!!\n{results}\n!!!! DEBUG SUMMARIZER END !!!!\n")
-            f.flush()
+        # # Debug
+        # with open("/app/debug_summarizer.log", "a") as f:
+        #     f.write(f"\n!!!! DEBUG SUMMARIZER START !!!!\n{results}\n!!!! DEBUG SUMMARIZER END !!!!\n")
+        #     f.flush()
 
         if results and 'generated_text' in results[0]:
             summary = results[0]['generated_text'].strip()
