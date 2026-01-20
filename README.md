@@ -1,6 +1,6 @@
 # RealSpark. AI Art Detector & Analyzer
 
-This application is aimed to count various statistics in uploaded images to decide the chances of whether the image was AI-generated or human-made. The image the application is focused on is photos of art, specifically paintings on canvas, board, or metal.
+RealSpark is a self-contained application aimed to analyze and decide the chances of whether an uploaded image was AI-generated or human-made. The images type the application is focused are works of hand made art, specifically paintings on canvas, board, or metal.
 
 ## Features
 
@@ -222,7 +222,7 @@ The project uses **Playwright** for browser-based integration testing of the com
 **What the Frontend Integration Tests Cover:**
 - ✅ All execution steps are displayed after upload
 - ✅ Parallel step execution indicators (running state)
-- ✅ Progressive display of partial results (HOG, AI, Fractal, Histogram)
+- ✅ Progressive display of partial results
 - ✅ Final results display with all cards visible
 - ✅ Step progression sequence and status indicators
 - ✅ UI element visibility flow
@@ -230,6 +230,7 @@ The project uses **Playwright** for browser-based integration testing of the com
 - ✅ Multiple timeouts displayed correctly
 - ✅ Error handling and error messages
 - ✅ Invalid file upload rejection
+- ✅ Task abandonment (canceling old task on new upload)
 
 
 ## API Code Generation
@@ -239,7 +240,7 @@ The project utilizes an **OpenAPI-driven development** workflow. The central sou
 ### When to run generation
 You **must** run the generation script whenever you modify the API definition in `openapi.yaml`. This is essential because:
 - **Backend (Python)**: The Pydantic models in `app/models.py` are automatically updated to match the latest schema. These models are used throughout `app/main.py`.
-- **Frontend (JavaScript)**: The UI uses standard `fetch()` calls and **Alpine.js** for reactivity. This ensures a lightweight, build-free frontend while maintaining alignment with the backend through manual implementation of the shared API contract.
+- **Frontend (JavaScript)**: The UI uses standard `fetch()` calls and **Alpine.js** for reactivity. No `openapi.yaml` based SDK is generated. This ensures a lightweight, build-free frontend while maintaining alignment with the backend through manual implementation of the shared API contract.
 
 ### How to run generation
 The easiest way is to use the provided `npm` script:

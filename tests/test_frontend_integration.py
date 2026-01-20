@@ -49,7 +49,7 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
     # Wait for step list to become visible
     expect(step_list).to_be_visible(timeout=5000)
     
-    # Verify all 9 steps are displayed
+    # Verify all 10 steps are displayed
     expected_steps = [
         "Preprocessing",
         "Metadata Analysis",
@@ -132,6 +132,10 @@ def test_partial_results_display_progressively(page: Page, live_server: str, tes
     expect(summary_card).to_be_visible(timeout=15000)
     expect(summary_card).to_contain_text("Summary")
 
+    # Wait for and verify Art Medium card appears
+    medium_card = page.locator("#artMediumResultCard")
+    expect(medium_card).to_be_visible(timeout=15000)
+
 
 def test_final_results_display(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
     """
@@ -155,8 +159,10 @@ def test_final_results_display(page: Page, live_server: str, test_image_bytes: b
     # Verify all result cards are visible
     expect(page.locator("#aiResultCard")).to_be_visible()
     expect(page.locator("#fractalResultCard")).to_be_visible()
+    expect(page.locator("#artMediumResultCard")).to_be_visible()
     
-    # Verify all steps show completion checkmarks
+    # Verify all steps show completion checkmarks (1 preprocessing + 6 cluster + 1 Storage + 1 DB + 1 Summary = 10)
+    # Note: "Parallel Analysis & Upload" is a internal step state, but exactly 10 step items show checkmarks.
     completed_icons = page.locator('.bi-check-circle-fill')
     expect(completed_icons).to_have_count(10)
 
@@ -300,3 +306,37 @@ def test_invalid_file_upload_error(page: Page, live_server: str):
     
     upload_result = page.locator("#uploadResult")
     expect(upload_result).to_contain_text("Error", timeout=10000)
+
+
+def test_task_abandonment_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
+    """
+    Test that starting a new upload while one is in progress works correctly (cancels the previous one).
+    """
+    control.reset()
+    # Ensure a delay so we have time to trigger the second upload
+    control.delays["metadata"] = 2.0
+    
+    page.goto(live_server)
+    
+    file_input = page.locator('input[type="file"]')
+    
+    # 1. Start first upload
+    file_input.set_input_files({
+        "name": "first.png",
+        "mimeType": "image/png",
+        "buffer": test_image_bytes
+    })
+    
+    # Wait for it to start (step list starts appearing)
+    expect(page.locator("#stepList")).to_be_visible(timeout=5000)
+    
+    # 2. Immediately start second upload
+    file_input.set_input_files({
+        "name": "second.png",
+        "mimeType": "image/png",
+        "buffer": test_image_bytes
+    })
+    
+    # 3. Verify the new upload completes successfully
+    # The UI resets when a new file is dropped, so it should just start the new pipeline.
+    expect(page.locator("#uploadResult")).to_contain_text("Success!", timeout=15000)

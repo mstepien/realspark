@@ -74,7 +74,8 @@
             font-size: 1.1rem;
         }
 
-        .grid-2 {
+        .grid-2,
+        .grid-3 {
             display: grid;
             grid-template-columns: 1fr;
             gap: 1.5rem;
@@ -83,6 +84,12 @@
         @media (min-width: 768px) {
             .grid-2 {
                 grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .grid-3 {
+                grid-template-columns: 1fr 1fr 1fr;
             }
         }
 
@@ -135,11 +142,24 @@
         #metadataTags {
             max-height: 250px;
             overflow-y: auto;
+            overflow-x: hidden;
             font-family: var(--sl-font-mono);
             font-size: 0.8rem;
             background: var(--sl-color-neutral-50);
             padding: 0.5rem;
             border-radius: 4px;
+        }
+
+        #metadataTags table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        #metadataTags td {
+            word-wrap: break-word;
+            word-break: break-all;
+            vertical-align: top;
         }
 
         .histogram-container {
@@ -201,8 +221,12 @@
 
             <div x-show="taskId" x-cloak>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem">
-                    <h3 style="margin: 0">Analysis in Progress</h3>
-                    <sl-button variant="neutral" size="small" @click="resetTask" outline>Cancel</sl-button>
+                    <h3 style="margin: 0" x-text="status === 'Complete' ? 'Analysis Complete' : 'Analysis in Progress'">
+                    </h3>
+                    <sl-button :variant="status === 'Complete' ? 'primary' : 'neutral'" size="small" @click="resetTask"
+                        :outline="status !== 'Complete'" style="cursor: pointer;">
+                        <span x-text="status === 'Complete' ? 'Upload new image' : 'Cancel'"></span>
+                    </sl-button>
                 </div>
 
                 <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
@@ -326,14 +350,14 @@
                             :style="'color: ' + (partialResults.metadata_analysis.is_suspicious ? 'var(--sl-color-danger-600)' : 'var(--sl-color-success-600)')"
                             x-text="partialResults.metadata_analysis.description"></div>
                         <div id="metadataTags">
-                            <table style="width: 100%; text-align: left; border-collapse: collapse">
+                            <table>
                                 <template
                                     x-for="[key, value] in Object.entries(partialResults.metadata_analysis.tags || {})"
                                     :key="key">
                                     <tr>
-                                        <td style="color: var(--sl-color-neutral-500); padding: 2px 4px; border-bottom: 1px solid var(--sl-color-neutral-100)"
+                                        <td style="color: var(--sl-color-neutral-500); padding: 4px; border-bottom: 1px solid var(--sl-color-neutral-100); width: 40%"
                                             x-text="key"></td>
-                                        <td style="padding: 2px 4px; border-bottom: 1px solid var(--sl-color-neutral-100)"
+                                        <td style="padding: 4px; border-bottom: 1px solid var(--sl-color-neutral-100); width: 60%"
                                             x-text="value"></td>
                                     </tr>
                                 </template>
@@ -359,40 +383,61 @@
             </template>
         </div>
 
-        <!-- Histogram Card -->
-        <div id="histogramCard" x-show="partialResults?.histogram_r" x-cloak>
-            <sl-card>
+        <!-- Visualizations -->
+        <div class="grid-2" x-show="partialResults?.histogram_r || partialResults?.hog_image_url" x-cloak
+            style="margin-bottom: 2rem">
+            <sl-card id="histogramCard" x-show="partialResults?.histogram_r">
                 <div slot="header">Color Intensity Distribution</div>
                 <div class="histogram-container">
                     <canvas x-ref="histogramCanvas"></canvas>
                 </div>
             </sl-card>
-        </div>
 
-        <!-- Stats Overview & HOG -->
-        <div class="grid-2">
-            <sl-card>
-                <div slot="header">Aggregate Database Stats</div>
-                <div style="display: flex; justify-content: space-around; margin-bottom: 1.5rem">
-                    <div style="text-align: center">
-                        <div class="stat-value" x-text="dbStats.total_images">0</div>
-                        <div class="stat-label">Total Analyzed</div>
-                    </div>
-                    <div style="text-align: center">
-                        <div class="stat-value" x-text="Math.round(dbStats.avg_width || 0)">0</div>
-                        <div class="stat-label">Avg Width</div>
-                    </div>
-                </div>
-                <canvas x-ref="statsCanvas"></canvas>
-            </sl-card>
-
-            <sl-card id="hogContainer" x-show="partialResults?.hog_image_url" x-cloak>
+            <sl-card id="hogContainer" x-show="partialResults?.hog_image_url">
                 <div slot="header">HOG Visualization</div>
                 <div style="text-align: center">
                     <img :src="partialResults?.hog_image_url"
                         style="max-width: 100%; border-radius: 8px; border: 1px solid var(--sl-color-neutral-200)">
                     <p style="font-size: 0.8rem; color: var(--sl-color-neutral-500); margin-top: 1rem">Histogram of
                         Oriented Gradients</p>
+                </div>
+            </sl-card>
+        </div>
+
+        <sl-divider style="margin: 2rem 0;"></sl-divider>
+
+        <!-- Database Overview (Aggregates) -->
+        <h2 style="text-align: center; margin-bottom: 4rem; color: var(--sl-color-neutral-600); font-weight: 300;">
+            Global Insights</h2>
+
+        <div class="grid-2" style="margin-bottom: 2rem">
+            <sl-card>
+                <div slot="header">Artistic Mediums Distribution</div>
+                <div style="height: 400px; display: flex; justify-content: center;">
+                    <canvas x-ref="artMediumsCanvas"></canvas>
+                </div>
+            </sl-card>
+
+            <sl-card>
+                <div slot="header">Fractal Dimensions Distribution</div>
+                <div style="height: 400px; display: flex; justify-content: center;">
+                    <canvas x-ref="fractalDistCanvas"></canvas>
+                </div>
+            </sl-card>
+        </div>
+
+        <div class="grid-2">
+            <sl-card>
+                <div slot="header">Top 10 AI Metadata Tags</div>
+                <div style="height: 350px;">
+                    <canvas x-ref="aiMetadataCanvas"></canvas>
+                </div>
+            </sl-card>
+
+            <sl-card>
+                <div slot="header">Top 10 Human Metadata Tags</div>
+                <div style="height: 350px;">
+                    <canvas x-ref="humanMetadataCanvas"></canvas>
                 </div>
             </sl-card>
         </div>
@@ -407,14 +452,16 @@
     <script>
         function app() {
             // Move charts outside the reactive object to prevent Alpine from proxying them
-            // Chart.js objects have circular references that cause "too much recursion" in Alpine/Vue
             const charts = {
-                stats: null,
+                aiMetadata: null,
+                humanMetadata: null,
+                artMediums: null,
+                fractalDist: null,
                 histogram: null
             };
 
             return {
-                dbStats: { total_images: 0 },
+                dbStats: { total_images: 0, ai_metadata: [], human_metadata: [], art_mediums: [], fractal_dist: [] },
                 taskId: null,
                 previewUrl: null,
                 status: '',
@@ -450,7 +497,7 @@
                 async fetchStats() {
                     const res = await fetch('/stats');
                     this.dbStats = await res.json();
-                    this.renderStatsChart();
+                    this.renderAggregateCharts();
                 },
 
                 handleFileUpload(e) {
@@ -556,68 +603,173 @@
 
                 // AI Result Helpers
                 hasAiResult() {
+                    if (this.result?.stats?.ai_probability !== undefined) return true;
                     const timedOut = this.timedOutSteps.includes('AI Classifier');
                     const hasProb = this.partialResults?.ai_probability !== undefined;
                     return timedOut || hasProb;
                 },
 
                 getAiText() {
-                    if (this.timedOutSteps.includes('AI Classifier')) return 'TIMEOUT';
-                    const prob = this.partialResults?.ai_probability;
+                    if (this.timedOutSteps.includes('AI Classifier') && !this.result) return 'TIMEOUT';
+                    const prob = this.result?.stats?.ai_probability ?? this.partialResults?.ai_probability;
                     if (prob === undefined) return '';
                     return (prob * 100).toFixed(1) + '%';
                 },
 
                 getAiColor() {
-                    if (this.timedOutSteps.includes('AI Classifier')) return 'var(--sl-color-warning-600)';
-                    const prob = this.partialResults?.ai_probability;
+                    if (this.timedOutSteps.includes('AI Classifier') && !this.result) return 'var(--sl-color-warning-600)';
+                    const prob = this.result?.stats?.ai_probability ?? this.partialResults?.ai_probability;
+                    if (prob === undefined) return 'var(--sl-color-neutral-400)';
                     if (prob < 0.2) return 'var(--sl-color-success-600)';
                     if (prob < 0.8) return 'var(--sl-color-warning-600)';
                     return 'var(--sl-color-danger-600)';
                 },
 
                 getAiDescription() {
-                    if (this.timedOutSteps.includes('AI Classifier')) return 'Analysis took too long';
-                    const prob = this.partialResults?.ai_probability;
+                    if (this.timedOutSteps.includes('AI Classifier') && !this.result) return 'Analysis took too long';
+                    const prob = this.result?.stats?.ai_probability ?? this.partialResults?.ai_probability;
+                    if (prob === undefined) return '';
                     if (prob < 0.2) return 'Likely Human-Created';
                     if (prob < 0.8) return 'Uncertain / Metadata Mismatch';
                     return 'Likely AI-Generated';
                 },
 
-                renderStatsChart() {
-                    if (!this.$refs.statsCanvas) return;
-                    const canvas = this.$refs.statsCanvas;
+                renderAggregateCharts() {
+                    this.renderBarChart(this.$refs.aiMetadataCanvas, 'aiMetadata', this.dbStats.ai_metadata, 'AI Metadata', '#a855f7');
+                    this.renderBarChart(this.$refs.humanMetadataCanvas, 'humanMetadata', this.dbStats.human_metadata, 'Human Metadata', '#6366f1');
+                    this.renderPieChart(this.$refs.artMediumsCanvas, 'artMediums', this.dbStats.art_mediums);
+                    this.renderDensityChart(this.$refs.fractalDistCanvas, 'fractalDist', this.dbStats.fractal_dist, 'Fractal Dimension Density', '#10b981');
+                },
 
-                    // Ensure canvas is visible and has size
+                renderBarChart(canvas, chartId, dataItems, label, color, horizontal = true) {
+                    if (!canvas || !dataItems) return;
                     if (canvas.offsetWidth === 0) return;
 
-                    const data = [
-                        this.dbStats.avg_color?.[0] || 0,
-                        this.dbStats.avg_color?.[1] || 0,
-                        this.dbStats.avg_color?.[2] || 0
-                    ];
+                    const labels = dataItems.map(d => d.label);
+                    const counts = dataItems.map(d => d.count);
 
-                    if (charts.stats) {
-                        charts.stats.data.datasets[0].data = data;
-                        charts.stats.update();
+                    if (charts[chartId]) {
+                        charts[chartId].data.labels = labels;
+                        charts[chartId].data.datasets[0].data = counts;
+                        charts[chartId].update();
                         return;
                     }
 
-                    charts.stats = new Chart(canvas, {
+                    charts[chartId] = new Chart(canvas, {
                         type: 'bar',
                         data: {
-                            labels: ['Red', 'Green', 'Blue'],
+                            labels: labels,
                             datasets: [{
-                                label: 'Avg Color Intensity',
-                                data: data,
-                                backgroundColor: ['rgba(239, 68, 68, 0.2)', 'rgba(34, 197, 94, 0.2)', 'rgba(99, 102, 241, 0.2)'],
-                                borderColor: ['#ef4444', '#22c55e', '#6366f1'],
+                                label: label,
+                                data: counts,
+                                backgroundColor: color + '33',
+                                borderColor: color,
                                 borderWidth: 1
                             }]
                         },
                         options: {
-                            scales: { y: { beginAtZero: true, max: 255 } },
-                            plugins: { legend: { display: false } }
+                            indexAxis: horizontal ? 'y' : 'x',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+                        }
+                    });
+                },
+
+                renderDensityChart(canvas, chartId, dataItems, label, color) {
+                    if (!canvas || !dataItems) return;
+                    if (canvas.offsetWidth === 0) return;
+
+                    const labels = dataItems.map(d => d.label);
+                    const counts = dataItems.map(d => d.count);
+
+                    if (charts[chartId]) {
+                        charts[chartId].data.labels = labels;
+                        charts[chartId].data.datasets[0].data = counts;
+                        charts[chartId].update();
+                        return;
+                    }
+
+                    charts[chartId] = new Chart(canvas, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: label,
+                                data: counts,
+                                backgroundColor: color + '44',
+                                borderColor: color,
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            return `Count: ${context.parsed.y}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: { display: true, text: 'Fractal Dimension' },
+                                    ticks: {
+                                        autoSkip: true,
+                                        maxTicksLimit: 10
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'Frequency' }
+                                }
+                            }
+                        }
+                    });
+                },
+
+                renderPieChart(canvas, chartId, dataItems) {
+                    if (!canvas || !dataItems) return;
+                    if (canvas.offsetWidth === 0) return;
+
+                    const labels = dataItems.map(d => d.label);
+                    const counts = dataItems.map(d => d.count);
+                    const colors = [
+                        '#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b',
+                        '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6'
+                    ];
+
+                    if (charts[chartId]) {
+                        charts[chartId].data.labels = labels;
+                        charts[chartId].data.datasets[0].data = counts;
+                        charts[chartId].update();
+                        return;
+                    }
+
+                    charts[chartId] = new Chart(canvas, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: counts,
+                                backgroundColor: colors,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
                         }
                     });
                 },

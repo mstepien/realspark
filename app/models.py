@@ -55,6 +55,10 @@ class AggregateStats(BaseModel):
     avg_width: float | None = None
     avg_height: float | None = None
     avg_color: list[float] | None = None
+    ai_metadata: list[dict[str, Any]] | None = None
+    human_metadata: list[dict[str, Any]] | None = None
+    art_mediums: list[dict[str, Any]] | None = None
+    fractal_dist: list[dict[str, Any]] | None = None
 
 
 class Result(BaseModel):

@@ -30,11 +30,23 @@ def fast_analysis(monkeypatch):
     def mock_histogram(img):
         return {"histogram_r": [0]*256, "histogram_g": [0]*256, "histogram_b": [0]*256}
 
+    def mock_metadata(img):
+        return {"tags": {}, "description": "Mock", "is_suspicious": False}
+
+    def mock_art_medium(img):
+        return {"medium": "Mock", "confidence": 1.0}
+
+    def mock_summary(data):
+        return "Mock summary"
+
     monkeypatch.setattr("app.main.prepare_image", mock_prepare)
     monkeypatch.setattr("app.main.compute_hog", mock_hog)
     monkeypatch.setattr("app.main.detect_ai", mock_ai)
     monkeypatch.setattr("app.main.compute_fractal_stats", mock_fractal)
     monkeypatch.setattr("app.main.compute_histogram", mock_histogram)
+    monkeypatch.setattr("app.main.extract_metadata", mock_metadata)
+    monkeypatch.setattr("app.main.analyze_art_medium", mock_art_medium)
+    monkeypatch.setattr("app.main.generate_summary", mock_summary)
 
 def test_read_root():
     async def run():
