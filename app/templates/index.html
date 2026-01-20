@@ -341,9 +341,32 @@
                 </sl-card>
             </template>
 
-            <!-- Metadata Card -->
+            <!-- Fractal Card -->
+            <template x-if="partialResults?.fd_default !== undefined">
+                <sl-card id="fractalResultCard">
+                    <div slot="header">Fractal Dimension</div>
+                    <div style="text-align: center; padding: 1rem 0">
+                        <div class="stat-value"
+                            x-text="partialResults.fd_default !== null ? Number(partialResults.fd_default).toFixed(4) : 'Timed Out'">
+                        </div>
+                        <div class="stat-label">Full Range Complexity</div>
+                        <p style="font-size: 0.8rem; color: var(--sl-color-neutral-500); margin-top: 1rem">Typically
+                            ranges from 2.0 (smooth) to 3.0 (rough/complex).</p>
+                    </div>
+                </sl-card>
+            </template>
+
+            <!-- Histogram Visualization (Integrated) -->
+            <sl-card id="histogramCard" x-show="partialResults?.histogram_r" style="grid-column: span 2" x-cloak>
+                <div slot="header">Color Intensity Distribution</div>
+                <div class="histogram-container">
+                    <canvas x-ref="histogramCanvas"></canvas>
+                </div>
+            </sl-card>
+
+            <!-- Metadata Card (Moved) -->
             <template x-if="partialResults?.metadata_analysis">
-                <sl-card id="metadataResultCard" style="grid-column: span 1">
+                <sl-card id="metadataResultCard" style="grid-column: span 2">
                     <div slot="header">Metadata Analysis</div>
                     <div style="text-align: center">
                         <div style="font-weight: 600; margin-bottom: 1rem"
@@ -366,43 +389,8 @@
                     </div>
                 </sl-card>
             </template>
-
-            <!-- Fractal Card -->
-            <template x-if="partialResults?.fd_default !== undefined">
-                <sl-card id="fractalResultCard">
-                    <div slot="header">Fractal Dimension</div>
-                    <div style="text-align: center; padding: 1rem 0">
-                        <div class="stat-value"
-                            x-text="partialResults.fd_default !== null ? Number(partialResults.fd_default).toFixed(4) : 'Timed Out'">
-                        </div>
-                        <div class="stat-label">Full Range Complexity</div>
-                        <p style="font-size: 0.8rem; color: var(--sl-color-neutral-500); margin-top: 1rem">Typically
-                            ranges from 2.0 (smooth) to 3.0 (rough/complex).</p>
-                    </div>
-                </sl-card>
-            </template>
         </div>
 
-        <!-- Visualizations -->
-        <div class="grid-2" x-show="partialResults?.histogram_r || partialResults?.hog_image_url" x-cloak
-            style="margin-bottom: 2rem">
-            <sl-card id="histogramCard" x-show="partialResults?.histogram_r">
-                <div slot="header">Color Intensity Distribution</div>
-                <div class="histogram-container">
-                    <canvas x-ref="histogramCanvas"></canvas>
-                </div>
-            </sl-card>
-
-            <sl-card id="hogContainer" x-show="partialResults?.hog_image_url">
-                <div slot="header">HOG Visualization</div>
-                <div style="text-align: center">
-                    <img :src="partialResults?.hog_image_url"
-                        style="max-width: 100%; border-radius: 8px; border: 1px solid var(--sl-color-neutral-200)">
-                    <p style="font-size: 0.8rem; color: var(--sl-color-neutral-500); margin-top: 1rem">Histogram of
-                        Oriented Gradients</p>
-                </div>
-            </sl-card>
-        </div>
 
         <sl-divider style="margin: 2rem 0;"></sl-divider>
 
@@ -574,7 +562,7 @@
                     if (this.isStepDone(step) || this.isStepTimeout(step)) return false;
                     if (this.currentStep === step) return true;
                     // Handle parallel cluster state
-                    const parallelSteps = ["Metadata Analysis", "Histogram Analysis", "HOG Analysis", "AI Classifier", "Fractal Dimension", "Uploading to Storage", "Art Medium Analysis"];
+                    const parallelSteps = ["Metadata Analysis", "Color Intensity Distribution", "AI Classifier", "Fractal Dimension", "Uploading to Storage", "Art Medium Analysis"];
                     return (this.currentStep === "Parallel Analysis & Upload" && parallelSteps.includes(step));
                 },
                 isStepPending(step) {

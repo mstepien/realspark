@@ -36,9 +36,7 @@ class ImageStats(BaseModel):
     width: int | None = None
     height: int | None = None
     mean_color: list[float] | None = None
-    hog_features: list[float] | None = None
     ai_probability: float | None = None
-    hog_image_url: str | None = None
     fd_default: float | None = Field(
         None, description='Fractal dimension calculated over the full box range.'
     )

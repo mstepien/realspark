@@ -18,9 +18,6 @@ def fast_analysis(monkeypatch):
         w, h = img.size
         return img, np.zeros((h, w, 3), dtype=np.uint8), w, h, np.array([0, 0, 0])
 
-    def mock_hog(img):
-        return np.zeros(10), io.BytesIO(b"fake_hog")
-
     def mock_ai(img):
         return 0.5
 
@@ -40,7 +37,6 @@ def fast_analysis(monkeypatch):
         return "Mock summary"
 
     monkeypatch.setattr("app.main.prepare_image", mock_prepare)
-    monkeypatch.setattr("app.main.compute_hog", mock_hog)
     monkeypatch.setattr("app.main.detect_ai", mock_ai)
     monkeypatch.setattr("app.main.compute_fractal_stats", mock_fractal)
     monkeypatch.setattr("app.main.compute_histogram", mock_histogram)
@@ -103,7 +99,6 @@ def test_upload_image_flow(mock_db_connection, mock_storage_client):
             assert "id" in result
             assert result['stats']['width'] == 50
             assert result['stats']['height'] == 50
-            assert "hog_image_url" in result['stats']
     run_async(run())
 
 def test_upload_invalid_file():
@@ -135,21 +130,17 @@ def test_partial_results_flow(mock_db_connection, mock_storage_client):
             task_id = response.json()["task_id"]
             
             # Poll until we see partial results or completion
-            seen_hog = False
             seen_metadata = False
             for _ in range(100):
                 res = await client.get(f"/progress/{task_id}")
                 data = res.json()
                 if "partial_results" in data:
-                    if data["partial_results"].get("hog_image_url"):
-                        seen_hog = True
                     if data["partial_results"].get("metadata_analysis"):
                         seen_metadata = True
                 if data.get("status") == "Complete":
                     break
                 await asyncio.sleep(0.01)
                 
-            assert seen_hog, "Should have seen hog_image_url in partial results"
             assert seen_metadata, "Should have seen metadata_analysis in partial results"
             
             # Final result check

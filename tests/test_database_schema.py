@@ -18,7 +18,7 @@ def test_image_stats_schema_has_all_columns(tmp_path, monkeypatch):
         expected_columns = [
             'id', 'filename', 'upload_time', 'width', 'height',
             'mean_color_r', 'mean_color_g', 'mean_color_b', 'url',
-            'hog_features', 'metadata_analysis'
+            'metadata_analysis'
         ]
         
         for col in expected_columns:
@@ -35,7 +35,6 @@ def test_save_and_retrieve_with_metadata(tmp_path, monkeypatch):
         'width': 100,
         'height': 100,
         'mean_color': [255, 0, 0],
-        'hog_features': [0.1, 0.2],
         'metadata_analysis': {
             'software': 'TestSoft',
             'is_suspicious': False,

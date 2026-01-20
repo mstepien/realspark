@@ -12,9 +12,6 @@ The application uses a pre-trained **Vision Transformer (ViT)** model locally fo
 
 It provides a probability score (0.0 to 1.0) where higher values indicate high likelihood of AI generation.
 
-### HOG Feature Visualization
-Histogram of Oriented Gradients (HOG) analysis is performed to identify structural patterns in the image, which are then visualized to show the detected features.
-
 ### Art Medium Analysis (DINOv2 + CLIP)
 The application performs a multi-stage analysis to identify the artistic medium and verify its physical consistency.
 - **Physical Texture Analysis (DINOv2)**: 
@@ -100,7 +97,6 @@ When developing within the Dev Container, you have two options to ensure your Py
 │   ├── models.py             # Generated Pydantic models [GENERATED]
 │   ├── database.py           # Database management (DuckDB)
 │   ├── storage.py            # GCS interaction
-│   ├── visualization.py      # HOG/Image visualization
 │   ├── analysis/             # Analysis sub-package
 │   │   ├── analysis.py       # Numerical image analysis
 │   │   ├── aiclassifiers.py  # AI classification logic (ViT)
@@ -321,19 +317,17 @@ You can pass environment variables to the container for custom configuration (e.
     *   `steps`: (list) List of total steps:
         1. `Preprocessing`: Basic image loading and metadata extraction.
         2. `Metadata Analysis`: Examining EXIF and software tags for AI signatures.
-        3. `Histogram Analysis`: Computing RGB color histograms.
-        4. `HOG Analysis`: Computing Histogram of Oriented Gradients for structural patterns.
-        5. `AI Classifier`: Running ViT inference for AI-vs-human detection.
-        6. `Fractal Dimension`: Computing fractal dimensionality.
-        7. `Art Medium Analysis`: DINOv2 patch analysis and CLIP classification.
-        8. `Uploading to Storage`: Saving the original image to GCS.
-        9. `Saving to Database`: Storing results and metadata in DuckDB.
-        10. `AI Insight Summary`: Generates the final human-readable conclusion.
+        3. `Color Intensity Distribution`: Computing RGB color histograms.
+        4. `AI Classifier`: Running ViT inference for AI-vs-human detection.
+        5. `Fractal Dimension`: Computing fractal dimensionality.
+        6. `Art Medium Analysis`: DINOv2 patch analysis and CLIP classification.
+        7. `Uploading to Storage`: Saving the original image to GCS.
+        8. `Saving to Database`: Storing results and metadata in DuckDB.
+        9. `AI Insight Summary`: Generates the final human-readable conclusion.
     *   `current_step`: (string) The step currently executing.
     *   `completed_steps`: (list) List of completed steps.
     *   `partial_results`: (object, optional) Real-time results as they become available:
         *   `histogram_r`, `histogram_g`, `histogram_b`: (arrays) RGB histogram data (256 bins each).
-        *   `hog_image_url`: (string) URL to HOG visualization image.
         *   `ai_probability`: (float) AI detection probability (0.0-1.0).
         *   `fd_default`: (float) Fractal dimension value.
         *   `summary`: (string) The generated AI Insight text.
@@ -346,7 +340,7 @@ You can pass environment variables to the container for custom configuration (e.
 
 ### Get Static File
 **GET** `/tmp/{filename}`
-*   Serves generated files like HOG visualizations.
+*   Serves generated files.
 
 
 ## Security

@@ -173,16 +173,6 @@ def mock_analysis_functions():
         img = Image.open(io.BytesIO(content))
         return img, np.zeros((100, 100, 3), dtype=np.uint8), 100, 100, np.array([128, 128, 128])
 
-    def mock_hog(np_img):
-        mock_control.trigger_error("hog")
-        time.sleep(mock_control.get_delay("hog"))
-        from PIL import Image
-        import io
-        img = Image.new('RGB', (100, 100), color='gray')
-        buf = io.BytesIO()
-        img.save(buf, format='PNG')
-        return mock_control.get_return("hog_fd", np.array([0.1] * 10)), buf
-
     def mock_detect_ai(img):
         mock_control.trigger_error("ai")
         time.sleep(mock_control.get_delay("ai"))
@@ -220,7 +210,6 @@ def mock_analysis_functions():
     
     originals = {
         'prepare_image': app.main.prepare_image,
-        'compute_hog': app.main.compute_hog,
         'detect_ai': app.main.detect_ai,
         'compute_fractal_stats': app.main.compute_fractal_stats,
         'compute_histogram': app.main.compute_histogram,
@@ -251,7 +240,6 @@ def mock_analysis_functions():
 
     # Patch modules
     app.main.prepare_image = app.analysis.prepare_image = with_logging("prepare", mock_prepare)
-    app.main.compute_hog = app.analysis.compute_hog = with_logging("hog", mock_hog)
     app.main.detect_ai = app.analysis.detect_ai = with_logging("ai", mock_detect_ai)
     app.main.compute_fractal_stats = app.analysis.compute_fractal_stats = with_logging("fractal", mock_fractal)
     app.main.compute_histogram = app.analysis.histogram.compute_histogram = with_logging("histogram", mock_histogram)
@@ -270,7 +258,6 @@ def mock_analysis_functions():
 
     # Restore
     app.main.prepare_image = originals['prepare_image']
-    app.main.compute_hog = originals['compute_hog']
     app.main.detect_ai = originals['detect_ai']
     app.main.compute_fractal_stats = originals['compute_fractal_stats']
     app.main.compute_histogram = originals['compute_histogram']

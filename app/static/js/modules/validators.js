@@ -94,13 +94,6 @@ export class DataValidator {
             }
         }
 
-        // Validate HOG image URL if present
-        if (partialResults.hog_image_url !== undefined) {
-            if (typeof partialResults.hog_image_url !== 'string') {
-                errors.push('hog_image_url must be a string');
-            }
-        }
-
         return { valid: errors.length === 0, errors };
     }
 }

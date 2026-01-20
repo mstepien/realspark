@@ -7,8 +7,6 @@ import io
 import os
 from PIL import ExifTags
 
-from app.visualization import create_hog_visualization
-
 from .aiclassifiers import detect_ai
 from .fractaldim import fractal_dimension
 
@@ -130,29 +128,11 @@ def extract_metadata(image: Image.Image):
         "is_suspicious": is_suspicious
     }
 
-def compute_hog(np_image):
-    """
-    Computes HOG features and visualization.
-    """
-    # Resize to a one standard size for better feature resolution (256x128)
-    resized_img = resize(np_image, (256, 128)) 
-    
-    # Convert to grayscale
-    gray_img = color.rgb2gray(resized_img)
-    
-    # Calculate HOG features
-    fd, hog_image = hog(gray_img, orientations=9, pixels_per_cell=(8, 8),
-                    cells_per_block=(2, 2), visualize=True)
-
-    hog_image_buffer = create_hog_visualization(hog_image)
-    return fd, hog_image_buffer
-
 def analyze_image(file_bytes: bytes):
     """
     Wrapper for backward compatibility.
     """
     image, np_image, width, height, mean_color = prepare_image(file_bytes)
-    fd, hog_image_buffer = compute_hog(np_image)
     ai_score = detect_ai(image)
     fractal_stats = compute_fractal_stats(np_image)
     metadata_analysis = extract_metadata(image)
@@ -161,8 +141,6 @@ def analyze_image(file_bytes: bytes):
         "width": width,
         "height": height,
         "mean_color": mean_color.tolist(), # [r, g, b]
-        "hog_features": fd.tolist(),
-        "hog_image_buffer": hog_image_buffer,
         "ai_probability": ai_score,
         "metadata_analysis": metadata_analysis,
         **fractal_stats

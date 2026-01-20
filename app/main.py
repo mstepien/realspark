@@ -6,7 +6,7 @@ import uvicorn
 from app.database import init_db, save_stats, get_aggregate_stats
 from app.storage import upload_to_gcs
 from app.analysis import (
-    prepare_image, compute_hog, detect_ai, 
+    prepare_image, detect_ai, 
     compute_fractal_stats, extract_metadata, analyze_art_medium
 )
 from app.analysis.summarizer import generate_summary, warmup_summarizer
@@ -51,8 +51,7 @@ STEP_TIMEOUT = 90 # seconds for each individual step
 STEPS = [
     "Preprocessing",
     "Metadata Analysis",
-    "Histogram Analysis",
-    "HOG Analysis", 
+    "Color Intensity Distribution",
     "AI Classifier",
     "Fractal Dimension",
     "Art Medium Analysis",
@@ -97,30 +96,12 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                         timeout=STEP_TIMEOUT
                     )
                     tasks[task_id]["partial_results"].update(data)
-                    tasks[task_id]["completed_steps"].append("Histogram Analysis")
+                    tasks[task_id]["completed_steps"].append("Color Intensity Distribution")
                     return data
                 except asyncio.TimeoutError:
-                    logger.warning(f"Histogram analysis timed out for task {task_id}")
-                    tasks[task_id]["timed_out_steps"].append("Histogram Analysis")
+                    logger.warning(f"Color Intensity Distribution timed out for task {task_id}")
+                    tasks[task_id]["timed_out_steps"].append("Color Intensity Distribution")
                     return {"histogram_r": [], "histogram_g": [], "histogram_b": []}
-
-            async def run_hog():
-                try:
-                    fd, hog_buf = await asyncio.wait_for(
-                        loop.run_in_executor(executor, compute_hog, np_image),
-                        timeout=STEP_TIMEOUT
-                    )
-                    hog_filename = f"hog_{task_id}.png"
-                    hog_path = os.path.join("tmp", hog_filename)
-                    with open(hog_path, "wb") as f:
-                        f.write(hog_buf.getvalue())
-                    tasks[task_id]["partial_results"]["hog_image_url"] = f"/tmp/{hog_filename}"
-                    tasks[task_id]["completed_steps"].append("HOG Analysis")
-                    return fd, hog_buf, hog_filename
-                except asyncio.TimeoutError:
-                    logger.warning(f"HOG analysis timed out for task {task_id}")
-                    tasks[task_id]["timed_out_steps"].append("HOG Analysis")
-                    return [], None, None
 
             async def run_ai():
                 try:
@@ -198,7 +179,6 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
             # Execute parallel tasks
             results = await asyncio.gather(
                 run_histogram(),
-                run_hog(),
                 run_ai(),
                 run_fractal(),
                 run_upload(),
@@ -207,7 +187,7 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                 return_exceptions=True
             )
             
-            res_hist, res_hog, res_ai, res_frac, res_upload, res_meta, res_art = results
+            res_hist, res_ai, res_frac, res_upload, res_meta, res_art = results
 
             # Check for errors in parallel cluster
             for i, result in enumerate(results):
@@ -215,7 +195,6 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                     logger.error(f"DEBUG: Task {i} failed with error: {result}")
                     raise result
 
-            fd, hog_image_buffer, hog_filename = res_hog
             ai_score = res_ai
             fractal_stats = res_frac
             url = res_upload
@@ -226,8 +205,6 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                 "width": width,
                 "height": height,
                 "mean_color": mean_color.tolist(),
-                "hog_features": fd if isinstance(fd, list) else fd.tolist(),
-                "hog_image_buffer": hog_image_buffer,
                 "ai_probability": ai_score,
                 **fractal_stats,
                 "metadata_analysis": metadata_analysis,
@@ -256,9 +233,6 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
             
             image_id = save_stats(filename, url, analysis_results)
             
-            if 'hog_image_buffer' in analysis_results:
-                del analysis_results['hog_image_buffer']
-            analysis_results['hog_image_url'] = f"/tmp/{hog_filename}"
 
             tasks[task_id]["completed_steps"].append("Saving to Database")
             tasks[task_id]["progress"] = 100

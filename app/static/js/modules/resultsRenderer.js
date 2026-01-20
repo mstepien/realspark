@@ -74,15 +74,4 @@ export class ResultsRenderer {
         return fdValue.toFixed(decimals);
     }
 
-    /**
-     * Checks if HOG image URL should be updated
-     * @param {string} currentSrc - Current image src
-     * @param {string} newUrl - New URL from partial results
-     * @returns {boolean} True if should update
-     */
-    static shouldUpdateHOGImage(currentSrc, newUrl) {
-        if (!newUrl) return false;
-        if (!currentSrc) return true;
-        return !currentSrc.endsWith(newUrl);
-    }
 }
