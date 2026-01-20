@@ -19,11 +19,17 @@ The application performs a multi-stage analysis to identify the artistic medium 
     - **DINOv2** (`facebook/dinov2-base`) generates high-dimensional embeddings for each patch.
     - **Vector Search & Clustering**: Patches are compared using cosine similarity. Repeatable textures (e.g., "scratchiness" of a dry brush or specific impasto strokes) cluster together.
     - **Consistency Scoring**: Measures texture uniformity. Low consistency suggests complex physical brushwork, while high consistency often points to digital media or uniform washes.
-- **High-Level Labeling (CLIP)**:
+- **High-Level Labeling (CLIP)**: 
     - **CLIP** (`openai/clip-vit-base-patch32`) provides zero-shot classification for the entire image against labels like *Watercolor, Oil, Acrylic, Digital painting*, etc.
 - **Cross-Verification**: The local texture findings from DINOv2 are contrasted with global CLIP labels to provide a nuanced description of the medium and its authenticity.
 
-### AI Insight Summary (LLM)
+### Object Detection (YOLOS-Tiny)
+The application identifies physical objects within the artwork to assist in authentication and context.
+- **Model**: `hustvl/yolos-tiny`
+- **Architecture**: Vision Transformer (ViT) specialized for object detection.
+- **Function**: Detects elements like "person", "frame", "signature", or "canvas" and includes them in the technical summary.
+
+### Insight Summary (LLM)
 A specialized "synthesizer" step that processes all previous technical findings into a single, professional conclusion for an appraiser.
 - **Model**: `google/flan-t5-small`.
 - **Architecture**: Instruction-tuned Text-to-Text Transfer Transformer (T5).
@@ -100,6 +106,7 @@ When developing within the Dev Container, you have two options to ensure your Py
 │   ├── analysis/             # Analysis sub-package
 │   │   ├── analysis.py       # Numerical image analysis
 │   │   ├── aiclassifiers.py  # AI classification logic (ViT)
+│   │   ├── object_detection.py # Object detection logic (YOLOS-Tiny)
 │   │   ├── fractaldim.py     # Fractal dimension computation
 │   │   ├── histogram.py      # Color histogram computation
 │   │   ├── artmedium/        # Art Medium classification (DINOv2, CLIP)
@@ -321,15 +328,17 @@ You can pass environment variables to the container for custom configuration (e.
         4. `AI Classifier`: Running ViT inference for AI-vs-human detection.
         5. `Fractal Dimension`: Computing fractal dimensionality.
         6. `Art Medium Analysis`: DINOv2 patch analysis and CLIP classification.
-        7. `Uploading to Storage`: Saving the original image to GCS.
-        8. `Saving to Database`: Storing results and metadata in DuckDB.
-        9. `AI Insight Summary`: Generates the final human-readable conclusion.
+        7. `Object Detection`: Running YOLOS-Tiny for element identification.
+        8. `Uploading to Storage`: Saving the original image to GCS.
+        9. `Saving to Database`: Storing results and metadata in DuckDB.
+        10. `Insight Summary`: Generates the final human-readable conclusion.
     *   `current_step`: (string) The step currently executing.
     *   `completed_steps`: (list) List of completed steps.
     *   `partial_results`: (object, optional) Real-time results as they become available:
         *   `histogram_r`, `histogram_g`, `histogram_b`: (arrays) RGB histogram data (256 bins each).
         *   `ai_probability`: (float) AI detection probability (0.0-1.0).
         *   `fd_default`: (float) Fractal dimension value.
+        *   `object_detection`: (array) List of detected objects with labels, scores, and boxes.
         *   `summary`: (string) The generated AI Insight text.
     *   `result`: (object, optional) Final result when complete (includes `id`, `url`, and `stats`).
     *   `error`: (string, optional) Error message if failed.
@@ -341,6 +350,11 @@ You can pass environment variables to the container for custom configuration (e.
 ### Get Static File
 **GET** `/tmp/{filename}`
 *   Serves generated files.
+
+### Readiness Probe
+**GET** `/ready_models`
+*   Returns whether the heavy AI models (ViT, T5, YOLOS) have finished loading and warming up.
+*   **Response**: `{"status": "ready" | "loading"}`
 
 
 ## Security
@@ -368,3 +382,4 @@ Docker containers run as a non-root user (`vscode`) to prevent privilege escalat
     - Texture Analysis: `facebook/dinov2-base`
     - Labeling: `openai/clip-vit-base-patch32`
     - Summarizer: `google/flan-t5-small`
+    - Object Detection: `hustvl/yolos-tiny`

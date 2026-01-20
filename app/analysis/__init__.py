@@ -1,3 +1,4 @@
 from .analysis import analyze_image, prepare_image, compute_fractal_stats, extract_metadata
 from .aiclassifiers import detect_ai
 from .artmedium import analyze_art_medium
+from .object_detection import detect_objects

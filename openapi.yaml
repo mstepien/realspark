@@ -187,6 +187,27 @@ components:
               additionalProperties:
                 type: number
           description: Results of the DINOv2 and CLIP basis art medium analysis.
+        object_detection:
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              score:
+                type: number
+              box:
+                type: object
+                properties:
+                  xmin:
+                    type: number
+                  ymin:
+                    type: number
+                  xmax:
+                    type: number
+                  ymax:
+                    type: number
 
     AggregateStats:
       type: object
@@ -204,5 +225,29 @@ components:
           items:
             type: number
           nullable: true
+        ai_metadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatEntry'
+        human_metadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatEntry'
+        art_mediums:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatEntry'
+        fractal_dist:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatEntry'
       required:
         - total_images
+
+    StatEntry:
+      type: object
+      properties:
+        label:
+          type: string
+        count:
+          type: integer

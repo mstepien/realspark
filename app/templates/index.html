@@ -296,12 +296,12 @@
             </div>
         </sl-card>
 
-        <!-- AI Insight Summary Card -->
+        <!-- Insight Summary Card -->
         <div x-show="partialResults?.summary" x-cloak style="margin-bottom: 2rem">
             <sl-card id="summaryCard">
                 <div slot="header" style="display: flex; align-items: center; gap: 0.5rem">
                     <i class="bi bi-stars" style="color: var(--sl-color-primary-600); font-size: 1.2rem"></i>
-                    <span style="font-weight: 600">AI Insight Summary</span>
+                    <span style="font-weight: 600">Insight Summary</span>
                 </div>
                 <div
                     style="font-size: 1.1rem; line-height: 1.6; color: var(--sl-color-neutral-800); font-weight: 500; padding: 0.5rem 0;">
@@ -352,6 +352,33 @@
                         <div class="stat-label">Full Range Complexity</div>
                         <p style="font-size: 0.8rem; color: var(--sl-color-neutral-500); margin-top: 1rem">Typically
                             ranges from 2.0 (smooth) to 3.0 (rough/complex).</p>
+                    </div>
+                </sl-card>
+            </template>
+
+            <!-- Object Detection Card -->
+            <template x-if="partialResults?.object_detection">
+                <sl-card id="objectDetectionCard">
+                    <div slot="header">Object Detection</div>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <template x-if="partialResults.object_detection.length === 0">
+                            <div style="text-align: center; color: var(--sl-color-neutral-500); padding: 1rem;">
+                                No notable objects detected.
+                            </div>
+                        </template>
+                        <template x-if="partialResults.object_detection.length > 0">
+                            <div>
+                                <template x-for="det in partialResults.object_detection" :key="Math.random()">
+                                    <div
+                                        style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid var(--sl-color-neutral-100);">
+                                        <span style="font-weight: 600; text-transform: capitalize;"
+                                            x-text="det.label"></span>
+                                        <span style="color: var(--sl-color-primary-600); font-weight: 500;"
+                                            x-text="(det.score * 100).toFixed(0) + '%'"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
                     </div>
                 </sl-card>
             </template>
@@ -562,7 +589,7 @@
                     if (this.isStepDone(step) || this.isStepTimeout(step)) return false;
                     if (this.currentStep === step) return true;
                     // Handle parallel cluster state
-                    const parallelSteps = ["Metadata Analysis", "Color Intensity Distribution", "AI Classifier", "Fractal Dimension", "Uploading to Storage", "Art Medium Analysis"];
+                    const parallelSteps = ["Metadata Analysis", "Color Intensity Distribution", "AI Classifier", "Fractal Dimension", "Uploading to Storage", "Art Medium Analysis", "Object Detection"];
                     return (this.currentStep === "Parallel Analysis & Upload" && parallelSteps.includes(step));
                 },
                 isStepPending(step) {

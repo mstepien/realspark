@@ -35,7 +35,8 @@ def init_db():
                 art_medium_analysis VARCHAR,
                 summary VARCHAR,
                 ai_probability DOUBLE,
-                fd_default DOUBLE
+                fd_default DOUBLE,
+                object_detection VARCHAR
             )
         """)
 
@@ -44,15 +45,16 @@ def save_stats(filename, url, stats):
         image_id = str(uuid.uuid4())
         import json
         con.execute("""
-            INSERT INTO image_stats (id, filename, upload_time, width, height, mean_color_r, mean_color_g, mean_color_b, url, metadata_analysis, art_medium_analysis, summary, ai_probability, fd_default)
-            VALUES (?, ?, current_timestamp, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO image_stats (id, filename, upload_time, width, height, mean_color_r, mean_color_g, mean_color_b, url, metadata_analysis, art_medium_analysis, summary, ai_probability, fd_default, object_detection)
+            VALUES (?, ?, current_timestamp, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (image_id, filename, stats['width'], stats['height'], 
             stats['mean_color'][0], stats['mean_color'][1], stats['mean_color'][2], url,
             json.dumps(stats.get('metadata_analysis')),
             json.dumps(stats.get('art_medium_analysis')),
             stats.get('summary'),
             stats.get('ai_probability'),
-            stats.get('fd_default')))
+            stats.get('fd_default'),
+            json.dumps(stats.get('object_detection'))))
         return image_id
 
 def get_aggregate_stats():

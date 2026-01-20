@@ -199,10 +199,17 @@ def mock_analysis_functions():
             "labels_weighted": {"Oil": 0.9, "Watercolor": 0.1}
         })
 
+    def mock_detect_objects(img):
+        mock_control.trigger_error("object_detection")
+        time.sleep(mock_control.get_delay("object_detection"))
+        return mock_control.get_return("object_detection_results", [
+            {"label": "person", "score": 0.95, "box": {"xmin": 10, "ymin": 10, "xmax": 90, "ymax": 90}}
+        ])
+
     def mock_summary(analysis_data):
         mock_control.trigger_error("summary")
         time.sleep(mock_control.get_delay("summary"))
-        return "This is a mock AI Insight Summary."
+        return "This is a mock Insight Summary."
 
     import app.main
     import app.analysis
@@ -215,6 +222,7 @@ def mock_analysis_functions():
         'compute_histogram': app.main.compute_histogram,
         'extract_metadata': app.main.extract_metadata,
         'analyze_art_medium': app.main.analyze_art_medium,
+        'detect_objects': app.main.detect_objects,
         'generate_summary': app.main.generate_summary
     }
 
@@ -245,6 +253,7 @@ def mock_analysis_functions():
     app.main.compute_histogram = app.analysis.histogram.compute_histogram = with_logging("histogram", mock_histogram)
     app.main.extract_metadata = app.analysis.extract_metadata = with_logging("metadata", mock_metadata)
     app.main.analyze_art_medium = app.analysis.analyze_art_medium = with_logging("art_medium", mock_art_medium)
+    app.main.detect_objects = app.analysis.detect_objects = with_logging("object_detection", mock_detect_objects)
     
     import app.analysis.summarizer
     app.main.generate_summary = app.analysis.summarizer.generate_summary = with_logging("summary", mock_summary)
@@ -252,7 +261,9 @@ def mock_analysis_functions():
     
     # Also skip the classifier warmup
     import app.analysis.aiclassifiers
+    import app.analysis.object_detection
     app.main.warmup_classifier = app.analysis.aiclassifiers.warmup_classifier = lambda: None
+    app.main.warmup_object_detector = app.analysis.object_detection.warmup_object_detector = lambda: None
 
     yield
 
@@ -263,6 +274,7 @@ def mock_analysis_functions():
     app.main.compute_histogram = originals['compute_histogram']
     app.main.extract_metadata = originals['extract_metadata']
     app.main.analyze_art_medium = originals['analyze_art_medium']
+    app.main.detect_objects = originals['detect_objects']
 
 @pytest.fixture(scope="session")
 def live_server():

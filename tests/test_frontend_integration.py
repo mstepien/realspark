@@ -57,9 +57,10 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
         "AI Classifier",
         "Fractal Dimension",
         "Art Medium Analysis",
+        "Object Detection",
         "Uploading to Storage",
         "Saving to Database",
-        "AI Insight Summary"
+        "Insight Summary"
     ]
     
     step_items = page.locator(".step-item")
@@ -156,10 +157,10 @@ def test_final_results_display(page: Page, live_server: str, test_image_bytes: b
     expect(page.locator("#fractalResultCard")).to_be_visible()
     expect(page.locator("#artMediumResultCard")).to_be_visible()
     
-    # Verify all steps show completion checkmarks (1 preprocessing + 6 cluster + 1 Storage + 1 DB + 1 Summary = 10)
+    # Verify all steps show completion checkmarks (1 preprocessing + 7 cluster + 1 DB + 1 Summary = 10)
     # Note: "Parallel Analysis & Upload" is a internal step state, but exactly 10 step items show checkmarks.
     completed_icons = page.locator('.bi-check-circle-fill')
-    expect(completed_icons).to_have_count(9)
+    expect(completed_icons).to_have_count(10)
 
 
 def test_step_progression_sequence(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client):

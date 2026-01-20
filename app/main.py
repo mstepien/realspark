@@ -7,7 +7,8 @@ from app.database import init_db, save_stats, get_aggregate_stats
 from app.storage import upload_to_gcs
 from app.analysis import (
     prepare_image, detect_ai, 
-    compute_fractal_stats, extract_metadata, analyze_art_medium
+    compute_fractal_stats, extract_metadata, analyze_art_medium,
+    detect_objects
 )
 from app.analysis.summarizer import generate_summary, warmup_summarizer
 from app.analysis.histogram import compute_histogram
@@ -26,6 +27,7 @@ app.mount("/tmp", StaticFiles(directory="tmp"), name="tmp")
 templates = Jinja2Templates(directory="app/templates")
 
 from app.analysis.aiclassifiers import warmup_classifier
+from app.analysis.object_detection import warmup_object_detector
 
 executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
 models_ready = False
@@ -36,6 +38,7 @@ async def warmup_models():
     # Use the executor to avoid blocking the event loop during heavy model loads
     await loop.run_in_executor(executor, warmup_classifier)
     await loop.run_in_executor(executor, warmup_summarizer)
+    await loop.run_in_executor(executor, warmup_object_detector)
     models_ready = True
     uvicorn.config.logger.info("Deep learning models warmed up successfully.")
 
@@ -55,9 +58,10 @@ STEPS = [
     "AI Classifier",
     "Fractal Dimension",
     "Art Medium Analysis",
+    "Object Detection",
     "Uploading to Storage",
     "Saving to Database",
-    "AI Insight Summary"
+    "Insight Summary"
 ]
 
 
@@ -176,6 +180,20 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                     tasks[task_id]["timed_out_steps"].append("Art Medium Analysis")
                     return None
 
+            async def run_object_detection():
+                try:
+                    detection_results = await asyncio.wait_for(
+                        loop.run_in_executor(executor, detect_objects, image),
+                        timeout=STEP_TIMEOUT
+                    )
+                    tasks[task_id]["partial_results"]["object_detection"] = detection_results
+                    tasks[task_id]["completed_steps"].append("Object Detection")
+                    return detection_results
+                except asyncio.TimeoutError:
+                    logger.warning(f"Object detection timed out for task {task_id}")
+                    tasks[task_id]["timed_out_steps"].append("Object Detection")
+                    return None
+
             # Execute parallel tasks
             results = await asyncio.gather(
                 run_histogram(),
@@ -184,10 +202,11 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                 run_upload(),
                 run_metadata(),
                 run_art_medium(),
+                run_object_detection(),
                 return_exceptions=True
             )
             
-            res_hist, res_ai, res_frac, res_upload, res_meta, res_art = results
+            res_hist, res_ai, res_frac, res_upload, res_meta, res_art, res_det = results
 
             # Check for errors in parallel cluster
             for i, result in enumerate(results):
@@ -208,13 +227,14 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                 "ai_probability": ai_score,
                 **fractal_stats,
                 "metadata_analysis": metadata_analysis,
-                "art_medium_analysis": art_medium_analysis
+                "art_medium_analysis": art_medium_analysis,
+                "object_detection": res_det
             }
             tasks[task_id]["progress"] = 85 # Adjusted from 85 to 90 in the snippet, but 85 is correct here for before summary
 
-            # Phase 3: AI Insight Summary 
+            # Phase 3: Insight Summary 
             tasks[task_id]["status"] = "Generating AI Insight..."
-            tasks[task_id]["current_step"] = "AI Insight Summary"
+            tasks[task_id]["current_step"] = "Insight Summary"
             tasks[task_id]["progress"] = 90 # New progress point
             
             # Run summarizer sequentially as it needs all previous results
@@ -224,7 +244,7 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
             )
             analysis_results["summary"] = summary
             tasks[task_id]["partial_results"]["summary"] = summary
-            tasks[task_id]["completed_steps"].append("AI Insight Summary")
+            tasks[task_id]["completed_steps"].append("Insight Summary")
             tasks[task_id]["progress"] = 98 # New progress point
 
             # Phase 4: Final Sequential Steps (DB Only)
