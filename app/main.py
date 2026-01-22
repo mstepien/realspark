@@ -4,7 +4,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 from app.database import init_db, save_stats, get_aggregate_stats
-from app.storage import upload_to_gcs
 from app.analysis import (
     prepare_image, detect_ai, 
     compute_fractal_stats, extract_metadata, analyze_art_medium,
@@ -59,7 +58,6 @@ STEPS = [
     "Fractal Dimension",
     "Art Medium Analysis",
     "Object Detection",
-    "Uploading to Storage",
     "Saving to Database",
     "Insight Summary"
 ]
@@ -147,10 +145,6 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                     tasks[task_id]["timed_out_steps"].append("Fractal Dimension")
                     return {"fd_default": None}
 
-            async def run_upload():
-                # Mocking upload for debugging
-                tasks[task_id]["completed_steps"].append("Uploading to Storage")
-                return f"https://mock-gcs.example.com/{filename}"
 
             async def run_metadata():
                 try:
@@ -199,14 +193,13 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
                 run_histogram(),
                 run_ai(),
                 run_fractal(),
-                run_upload(),
                 run_metadata(),
                 run_art_medium(),
                 run_object_detection(),
                 return_exceptions=True
             )
             
-            res_hist, res_ai, res_frac, res_upload, res_meta, res_art, res_det = results
+            res_hist, res_ai, res_frac, res_meta, res_art, res_det = results
 
             # Check for errors in parallel cluster
             for i, result in enumerate(results):
@@ -216,7 +209,7 @@ async def process_image_task(task_id: str, session_id: str, content: bytes, file
 
             ai_score = res_ai
             fractal_stats = res_frac
-            url = res_upload
+            url = None
             metadata_analysis = res_meta
             art_medium_analysis = res_art
 

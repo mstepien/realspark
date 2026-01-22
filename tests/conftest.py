@@ -84,27 +84,6 @@ def db_session(mock_db_connection):
     mock_db_connection.execute("DELETE FROM image_stats")
     yield mock_db_connection
 
-@pytest.fixture(scope="session")
-def mock_storage_client():
-    """
-    Mocks the Google Cloud Storage client.
-    """
-    import app.storage
-    mock_client = MagicMock()
-    mock_bucket = MagicMock()
-    mock_blob = MagicMock()
-    
-    mock_client.bucket.return_value = mock_bucket
-    mock_bucket.blob.return_value = mock_blob
-    mock_blob.public_url = "https://mock-storage.com/test-image.jpg"
-    
-    # Manual patch
-    original_client = app.storage.storage_client
-    app.storage.storage_client = mock_client
-    
-    yield mock_client
-    
-    app.storage.storage_client = original_client
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_transformers():

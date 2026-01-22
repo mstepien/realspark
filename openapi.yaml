@@ -87,7 +87,7 @@ components:
       properties:
         status:
           type: string
-          description: Current status (Starting..., Preprocessing..., Performing Parallel Analysis & Upload..., Saving to Database..., Complete, Error, Abandoned)
+          description: Current status (Starting..., Preprocessing..., Performing Parallel Analysis..., Saving to Database..., Complete, Error, Abandoned)
         progress:
           type: integer
         steps:

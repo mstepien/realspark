@@ -63,7 +63,7 @@ def test_get_stats_empty(mock_db_connection):
             assert data['total_images'] == 0
     run_async(run())
 
-def test_upload_image_flow(mock_db_connection, mock_storage_client):
+def test_upload_image_flow(mock_db_connection):
     async def run():
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://testserver") as client:
@@ -112,7 +112,7 @@ def test_upload_invalid_file():
             assert response.status_code == 400
     run_async(run())
 
-def test_partial_results_flow(mock_db_connection, mock_storage_client):
+def test_partial_results_flow(mock_db_connection):
     async def run():
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://testserver") as client:
@@ -149,7 +149,7 @@ def test_partial_results_flow(mock_db_connection, mock_storage_client):
             assert "metadata_analysis" in final_data["result"]["stats"]
     run_async(run())
 
-def test_task_abandonment_logic(mock_db_connection, mock_storage_client):
+def test_task_abandonment_logic(mock_db_connection):
     async def run():
         transport = ASGITransport(app=app)
         # Use the same client to persist cookies (session_id)

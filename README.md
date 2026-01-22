@@ -4,7 +4,7 @@ RealSpark is a self-contained application aimed to analyze and decide the chance
 
 ## Features
 
-### AI Image Detection (Offline)
+### AI Image Detection
 The application uses a pre-trained **Vision Transformer (ViT)** model locally for high-accuracy detection of AI-generated content.
 - **Model**: `Ateeqq/ai-vs-human-image-detector` (available on Hugging Face).
 - **Architecture**: Vision Transformer (ViT).
@@ -102,7 +102,6 @@ When developing within the Dev Container, you have two options to ensure your Py
 │   ├── main.py               # FastAPI entry point
 │   ├── models.py             # Generated Pydantic models [GENERATED]
 │   ├── database.py           # Database management (DuckDB)
-│   ├── storage.py            # GCS interaction
 │   ├── analysis/             # Analysis sub-package
 │   │   ├── analysis.py       # Numerical image analysis
 │   │   ├── aiclassifiers.py  # AI classification logic (ViT)
@@ -304,8 +303,6 @@ If running with `docker compose`, the following volumes are mapped to persist da
 
 ### Environment Variables
 You can pass environment variables to the container for custom configuration (e.g., in `docker-compose.yml` or using `-e` flag):
-- `GCS_BUCKET_NAME`: Set your Google Cloud Storage bucket name.
-- `GOOGLE_APPLICATION_CREDENTIALS`: Path to your service account JSON file (ensure the file is also mounted as a volume).
 
 ## API Reference
 
@@ -329,9 +326,8 @@ You can pass environment variables to the container for custom configuration (e.
         5. `Fractal Dimension`: Computing fractal dimensionality.
         6. `Art Medium Analysis`: DINOv2 patch analysis and CLIP classification.
         7. `Object Detection`: Running YOLOS-Tiny for element identification.
-        8. `Uploading to Storage`: Saving the original image to GCS.
-        9. `Saving to Database`: Storing results and metadata in DuckDB.
-        10. `Insight Summary`: Generates the final human-readable conclusion.
+        8. `Saving to Database`: Storing results and metadata in DuckDB.
+        9. `Insight Summary`: Generates the final human-readable conclusion.
     *   `current_step`: (string) The step currently executing.
     *   `completed_steps`: (list) List of completed steps.
     *   `partial_results`: (object, optional) Real-time results as they become available:

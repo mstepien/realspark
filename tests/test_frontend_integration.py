@@ -24,7 +24,7 @@ def test_image_bytes():
     return img_byte_arr.getvalue()
 
 
-def test_upload_displays_all_steps(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client):
+def test_upload_displays_all_steps(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection):
     """
     Test that all execution steps are displayed after clicking Upload & Analyze.
     """
@@ -58,7 +58,6 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
         "Fractal Dimension",
         "Art Medium Analysis",
         "Object Detection",
-        "Uploading to Storage",
         "Saving to Database",
         "Insight Summary"
     ]
@@ -72,7 +71,7 @@ def test_upload_displays_all_steps(page: Page, live_server: str, test_image_byte
         expect(step_element).to_be_visible()
 
 
-def test_parallel_steps_show_running_state(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
+def test_parallel_steps_show_running_state(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, control):
     """
     Test that parallel steps show running indicators during execution.
     """
@@ -103,7 +102,7 @@ def test_parallel_steps_show_running_state(page: Page, live_server: str, test_im
     assert running_icon_seen, "Should see running indicators during parallel execution"
 
 
-def test_partial_results_display_progressively(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
+def test_partial_results_display_progressively(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, control):
     """
     Test that partial results appear progressively as analysis completes.
     """
@@ -133,7 +132,7 @@ def test_partial_results_display_progressively(page: Page, live_server: str, tes
     expect(medium_card).to_be_visible(timeout=15000)
 
 
-def test_final_results_display(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
+def test_final_results_display(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, control):
     """
     Test that all final results are displayed correctly after completion.
     """
@@ -157,13 +156,13 @@ def test_final_results_display(page: Page, live_server: str, test_image_bytes: b
     expect(page.locator("#fractalResultCard")).to_be_visible()
     expect(page.locator("#artMediumResultCard")).to_be_visible()
     
-    # Verify all steps show completion checkmarks (1 preprocessing + 7 cluster + 1 DB + 1 Summary = 10)
-    # Note: "Parallel Analysis & Upload" is a internal step state, but exactly 10 step items show checkmarks.
+    # Verify all steps show completion checkmarks (1 preprocessing + 6 cluster + 1 DB + 1 Summary = 9)
+    # Note: "Parallel Analysis" is an internal step state, but exactly 9 step items show checkmarks.
     completed_icons = page.locator('.bi-check-circle-fill')
-    expect(completed_icons).to_have_count(10)
+    expect(completed_icons).to_have_count(9)
 
 
-def test_step_progression_sequence(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client):
+def test_step_progression_sequence(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection):
     """
     Test that steps progress in the correct sequence with proper status indicators.
     """
@@ -190,7 +189,7 @@ def test_step_progression_sequence(page: Page, live_server: str, test_image_byte
     expect(progress_bar).to_have_attribute("aria-valuenow", "100")
 
 
-def test_ui_elements_visibility_flow(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client):
+def test_ui_elements_visibility_flow(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection):
     """
     Test the complete visibility flow of UI elements from upload to completion.
     """
@@ -214,7 +213,7 @@ def test_ui_elements_visibility_flow(page: Page, live_server: str, test_image_by
     expect(page.locator("#uploadResult")).to_contain_text("Success!", timeout=15000)
 
 
-def test_timeout_handling_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
+def test_timeout_handling_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, control):
     """
     Test that timeout states are correctly displayed in the UI.
     """
@@ -239,7 +238,7 @@ def test_timeout_handling_in_ui(page: Page, live_server: str, test_image_bytes: 
     expect(page.locator("#fractalResultCard")).to_contain_text("Timed Out")
 
 
-def test_multiple_timeouts_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
+def test_multiple_timeouts_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, control):
     """
     Test that multiple timeout states are correctly displayed in the UI.
     """
@@ -264,7 +263,7 @@ def test_multiple_timeouts_in_ui(page: Page, live_server: str, test_image_bytes:
     expect(timeout_icons).to_have_count(2)
 
 
-def test_error_handling_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
+def test_error_handling_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, control):
     """
     Test that error states are correctly displayed in the UI.
     """
@@ -304,7 +303,7 @@ def test_invalid_file_upload_error(page: Page, live_server: str):
     expect(upload_result).to_contain_text("Error", timeout=10000)
 
 
-def test_task_abandonment_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, mock_storage_client, control):
+def test_task_abandonment_in_ui(page: Page, live_server: str, test_image_bytes: bytes, mock_db_connection, control):
     """
     Test that starting a new upload while one is in progress works correctly (cancels the previous one).
     """
