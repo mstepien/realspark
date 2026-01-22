@@ -1,6 +1,4 @@
-from skimage import color
-from skimage.feature import hog
-from skimage.transform import resize
+import cv2
 from PIL import Image
 import numpy as np
 import io
@@ -19,19 +17,20 @@ def compute_fractal_stats(np_image):
     """
     # Resize to a smaller standard size for performance (Fractal Dim calculation is expensive)
     # Resizing to 256x256 ensures reasonable execution time while maintaining statistical validity.
-    resized_img = resize(np_image, (256, 256), anti_aliasing=True)
+    resized_img = cv2.resize(np_image, (256, 256), interpolation=cv2.INTER_AREA)
 
     # Use grayscale image for FD calculation
     if resized_img.ndim == 3:
-        gray_img = color.rgb2gray(resized_img)
-        # Rescale to 0-255 uint8 as the algo expects standard image intensity range
-        gray_img = (gray_img * 255).astype(np.uint8)
+        gray_img = cv2.cvtColor(resized_img, cv2.COLOR_RGB2GRAY)
     else:
-        # If already grayscale, ensure it is 0-255 uint8
-        if resized_img.dtype != np.uint8:
-             gray_img = (resized_img * 255).astype(np.uint8)
+        gray_img = resized_img
+        
+    # Ensure it is 0-255 uint8
+    if gray_img.dtype != np.uint8:
+        if gray_img.max() <= 1.0:
+            gray_img = (gray_img * 255).astype(np.uint8)
         else:
-             gray_img = resized_img
+            gray_img = gray_img.astype(np.uint8)
         
     M = gray_img.shape[0]
     limit_small = max(3, M // 8)

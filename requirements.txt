@@ -7,9 +7,6 @@ numpy
 jinja2
 python-multipart
 
-#HOG features, skimage
-scikit-image
-matplotlib
 
 #ai classifier, models
 transformers
