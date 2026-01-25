@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RealSpark | Image Authentication</title>
+    <title>RealSpark | AI Art Detector & Analyzer</title>
 
     <!-- Shoelace Assets -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/dist/themes/light.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/dist/themes/dark.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script type="module"
         src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/dist/shoelace-autoloader.js"></script>
@@ -18,21 +19,29 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --sl-color-primary-600: #6366f1;
             /* Indigo primary */
             --sl-input-border-radius-medium: 8px;
+            --sl-font-sans: 'Outfit', sans-serif;
+            letter-spacing: -0.011em;
         }
 
         body {
             font-family: var(--sl-font-sans);
-            background-color: #f8fafc;
+            background-color: var(--sl-color-neutral-50);
             color: var(--sl-color-neutral-900);
             margin: 0;
             padding: 2rem 1rem;
             display: flex;
             justify-content: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -49,19 +58,22 @@
         }
 
         .header h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin: 0;
-            background: linear-gradient(to right, #6366f1, #a855f7);
+            background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            color: transparent;
             font-weight: 800;
+            letter-spacing: -0.02em;
         }
 
         .header p {
-            color: var(--sl-color-neutral-500);
+            color: var(--sl-color-neutral-600);
             margin-top: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
         }
 
         sl-card {
@@ -126,7 +138,7 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.5rem 0;
-            border-bottom: 1px solid var(--sl-color-neutral-100);
+            border-bottom: 1px solid var(--sl-color-neutral-200);
         }
 
         .step-item:last-child {
@@ -145,7 +157,7 @@
             overflow-x: hidden;
             font-family: var(--sl-font-mono);
             font-size: 0.8rem;
-            background: var(--sl-color-neutral-50);
+            background: var(--sl-color-neutral-100);
             padding: 0.5rem;
             border-radius: 4px;
         }
@@ -186,14 +198,37 @@
             display: inline-block;
             animation: bi-spin 1.5s linear infinite;
         }
+
+        /* Dark mode overrides for custom elements */
+        .sl-theme-dark body {
+            background-color: var(--sl-color-neutral-0);
+        }
+
+        .sl-theme-dark .upload-dropzone {
+            background: var(--sl-color-neutral-50);
+            border-color: var(--sl-color-neutral-200);
+        }
+
+        .sl-theme-dark .upload-dropzone:hover {
+            border-color: var(--sl-color-primary-500);
+            background: var(--sl-color-neutral-100);
+        }
     </style>
 </head>
 
-<body x-data="app()">
+<body x-data="app()" :class="'sl-theme-' + theme"
+    @theme-change.window="renderAggregateCharts(); if(partialResults?.histogram_r) renderHistogramChart();">
     <div class="container">
         <header class="header">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="flex: 1"></div>
+                <div style="flex: 1; display: flex; align-items: center; gap: 1rem;">
+                    <sl-tooltip content="Toggle Theme">
+                        <sl-icon-button @click="toggleTheme()" label="Theme Toggle"
+                            style="font-size: 1.5rem; color: var(--sl-color-neutral-600);">
+                            <i :class="theme === 'light' ? 'bi bi-moon' : 'bi bi-sun'"></i>
+                        </sl-icon-button>
+                    </sl-tooltip>
+                </div>
                 <h1>RealSpark</h1>
                 <div
                     style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 500;">
@@ -489,6 +524,7 @@
                 result: null,
                 pollInterval: null,
                 modelsStatus: 'loading',
+                theme: localStorage.getItem('theme') || 'light',
 
                 init() {
                     this.fetchStats();
@@ -497,6 +533,22 @@
                     setInterval(() => {
                         if (this.modelsStatus !== 'ready') this.fetchModelsStatus();
                     }, 5000);
+
+                    // Force chart axes colors based on theme
+                    Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600');
+                    Chart.defaults.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200');
+                },
+
+                toggleTheme() {
+                    this.theme = this.theme === 'light' ? 'dark' : 'light';
+                    localStorage.setItem('theme', this.theme);
+
+                    // Update global Chart.js defaults for next renders
+                    setTimeout(() => {
+                        Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600');
+                        Chart.defaults.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200');
+                        window.dispatchEvent(new CustomEvent('theme-change'));
+                    }, 50);
                 },
 
                 async fetchModelsStatus() {
@@ -589,7 +641,7 @@
                     if (this.isStepDone(step) || this.isStepTimeout(step)) return false;
                     if (this.currentStep === step) return true;
                     // Handle parallel cluster state
-                    const parallelSteps = ["Metadata Analysis", "Color Intensity Distribution", "AI Classifier", "Fractal Dimension", "Uploading to Storage", "Art Medium Analysis", "Object Detection"];
+                    const parallelSteps = ["Metadata Analysis", "Color Intensity Distribution", "AI Classifier", "Fractal Dimension", "Art Medium Analysis", "Object Detection"];
                     return (this.currentStep === "Parallel Analysis & Upload" && parallelSteps.includes(step));
                 },
                 isStepPending(step) {
@@ -666,6 +718,12 @@
                     if (charts[chartId]) {
                         charts[chartId].data.labels = labels;
                         charts[chartId].data.datasets[0].data = counts;
+                        const color = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600');
+                        const GridColor = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200');
+                        charts[chartId].options.scales.x.ticks.color = color;
+                        charts[chartId].options.scales.x.grid.color = GridColor;
+                        charts[chartId].options.scales.y.ticks.color = color;
+                        charts[chartId].options.scales.y.grid.color = GridColor;
                         charts[chartId].update();
                         return;
                     }
@@ -687,7 +745,17 @@
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
-                            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    ticks: { precision: 0, color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600') },
+                                    grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200') }
+                                },
+                                y: {
+                                    ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600') },
+                                    grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200') }
+                                }
+                            }
                         }
                     });
                 },
@@ -702,6 +770,14 @@
                     if (charts[chartId]) {
                         charts[chartId].data.labels = labels;
                         charts[chartId].data.datasets[0].data = counts;
+                        const color = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600');
+                        const GridColor = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200');
+                        charts[chartId].options.scales.x.ticks.color = color;
+                        charts[chartId].options.scales.x.grid.color = GridColor;
+                        charts[chartId].options.scales.x.title.color = color;
+                        charts[chartId].options.scales.y.ticks.color = color;
+                        charts[chartId].options.scales.y.grid.color = GridColor;
+                        charts[chartId].options.scales.y.title.color = color;
                         charts[chartId].update();
                         return;
                     }
@@ -736,15 +812,19 @@
                             },
                             scales: {
                                 x: {
-                                    title: { display: true, text: 'Fractal Dimension' },
+                                    title: { display: true, text: 'Fractal Dimension', color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600') },
                                     ticks: {
                                         autoSkip: true,
-                                        maxTicksLimit: 10
-                                    }
+                                        maxTicksLimit: 10,
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600')
+                                    },
+                                    grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200') }
                                 },
                                 y: {
                                     beginAtZero: true,
-                                    title: { display: true, text: 'Frequency' }
+                                    title: { display: true, text: 'Frequency', color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600') },
+                                    ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600') },
+                                    grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200') }
                                 }
                             }
                         }
@@ -765,6 +845,7 @@
                     if (charts[chartId]) {
                         charts[chartId].data.labels = labels;
                         charts[chartId].data.datasets[0].data = counts;
+                        charts[chartId].options.plugins.legend.labels.color = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600');
                         charts[chartId].update();
                         return;
                     }
@@ -783,7 +864,10 @@
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: {
-                                legend: { position: 'bottom' }
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600') }
+                                }
                             }
                         }
                     });
@@ -800,7 +884,12 @@
                         charts.histogram.data.datasets[0].data = this.partialResults.histogram_r;
                         charts.histogram.data.datasets[1].data = this.partialResults.histogram_g;
                         charts.histogram.data.datasets[2].data = this.partialResults.histogram_b;
-                        charts.histogram.update('none'); // Update without animation for speed
+                        // Update scale and legend colors
+                        const color = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600');
+                        charts.histogram.options.scales.x.ticks.color = color;
+                        charts.histogram.options.scales.x.grid.color = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200');
+                        charts.histogram.options.plugins.legend.labels.color = color;
+                        charts.histogram.update('none');
                         return;
                     }
 
@@ -818,10 +907,18 @@
                             responsive: true,
                             maintainAspectRatio: false,
                             scales: {
-                                x: { ticks: { maxTicksLimit: 10 } },
+                                x: {
+                                    ticks: { maxTicksLimit: 10, color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600') },
+                                    grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200') }
+                                },
                                 y: { display: false }
                             },
-                            plugins: { legend: { position: 'top' } }
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600') }
+                                }
+                            }
                         }
                     });
                 }

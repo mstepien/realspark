@@ -1,6 +1,9 @@
 # RealSpark. AI Art Detector & Analyzer
 
-RealSpark is a self-contained application aimed to analyze and decide the chances of whether an uploaded image was AI-generated or human-made. The images type the application is focused are works of hand made art, specifically paintings on canvas, board, or metal.
+<img src="realspark-screenshot.jpg" align="right" width="360">
+
+RealSpark is a self-contained application aimed to analyze and decide the chances of whether an uploaded image was AI-generated or human-made art creation. The images type the application is focused on are works of hand made paintings, eg. oil on canvas or acrylic on board, watercolor, etc.
+
 
 ## Features
 
@@ -45,9 +48,9 @@ A specialized "synthesizer" step that processes all previous technical findings 
 
 ## Prerequisites
 
-- **Python**: 3.10.x, 3.11.x, or 3.12.x
+- **Python**: 3.10.x, 3.11.x, 3.12.x, or 3.13.x
 - **pip**: Python package manager
-- **Node.js**: v16+ (Required for API generation and Frontend tests)
+- **Node.js**: v18+ (Required for API generation and Frontend tests)
 - **npm**: Node package manager
 
 ## Installation
@@ -178,7 +181,7 @@ The project uses `Jest` for unit testing the frontend logic (validators, rendere
 The project uses **Playwright** for browser-based integration testing of the complete upload and analysis workflow.
 
 **Prerequisites:**
-- **Python 3.10-3.12** (Python 3.13+ has compatibility issues with numpy<2.0).
+- **Python 3.10-3.13** (Fully compatible with NumPy 2.0+).
 - Python virtual environment activated
 - Playwright browsers installed
 
