@@ -106,7 +106,7 @@ When developing within the Dev Container, you have two options to ensure your Py
 │   ├── models.py             # Generated Pydantic models [GENERATED]
 │   ├── database.py           # Database management (DuckDB)
 │   ├── analysis/             # Analysis sub-package
-│   │   ├── analysis.py       # Numerical image analysis
+│   │   ├── analysis.py       # Image processing & Feature extraction
 │   │   ├── aiclassifiers.py  # AI classification logic (ViT)
 │   │   ├── object_detection.py # Object detection logic (YOLOS-Tiny)
 │   │   ├── fractaldim.py     # Fractal dimension computation
@@ -114,7 +114,7 @@ When developing within the Dev Container, you have two options to ensure your Py
 │   │   ├── artmedium/        # Art Medium classification (DINOv2, CLIP)
 │   │   └── summarizer.py     # AI Insight generation (Flan-T5)
 │   ├── static/               # Frontend assets
-│   │   └── js/client/        # Generated JS Client SDK [GENERATED]
+│   │   └── js/modules/       # Modular UI logic [Alpine.js]
 │   └── templates/            # Jinja2 HTML templates
 ├── tests/                    # Test suite
 │   └── ...
@@ -189,7 +189,7 @@ The project uses **Playwright** for browser-based integration testing of the com
 
 1.  **Ensure you're using the correct Python version**:
     ```bash
-    python3 --version  # Should show 3.10.x, 3.11.x, or 3.12.x
+    python3 --version  # Should show 3.10.x - 3.13.x
     ```
 
 2.  **Install Python dependencies**:
@@ -301,7 +301,7 @@ docker build --target production -t art-analysis-prod .
 ### Docker Volume Mapping
 If running with `docker compose`, the following volumes are mapped to persist data:
 - `data/`: Persists the analysis history (`image_stats.duckdb`). Mounting the directory allows for data locking and temporary files required by DuckDB.
-- `tmp/`: Persists generated HOG visualizations.
+- `tmp/`: Persists temporary files.
 - `cache/transformers/`: Persists the AI model weights to avoid downloading them on every restart.
 
 ### Environment Variables
