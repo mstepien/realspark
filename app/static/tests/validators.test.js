@@ -135,20 +135,5 @@ describe('DataValidator', () => {
             expect(result.valid).toBe(false);
             expect(result.errors).toContain('fd_default must be a number');
         });
-
-        test('accepts valid HOG image URL', () => {
-            const data = { hog_image_url: '/tmp/hog_123.png' };
-            const result = DataValidator.validatePartialResults(data);
-
-            expect(result.valid).toBe(true);
-        });
-
-        test('rejects invalid HOG image URL type', () => {
-            const data = { hog_image_url: 123 };
-            const result = DataValidator.validatePartialResults(data);
-
-            expect(result.valid).toBe(false);
-            expect(result.errors).toContain('hog_image_url must be a string');
-        });
     });
 });

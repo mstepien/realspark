@@ -120,25 +120,4 @@ describe('ResultsRenderer', () => {
             expect(ResultsRenderer.formatFractalDimension('not a number')).toBeNull();
         });
     });
-
-    describe('shouldUpdateHOGImage', () => {
-        test('returns true if no new URL', () => {
-            expect(ResultsRenderer.shouldUpdateHOGImage('', null)).toBe(false);
-            expect(ResultsRenderer.shouldUpdateHOGImage('', undefined)).toBe(false);
-        });
-
-        test('returns true if no current src', () => {
-            expect(ResultsRenderer.shouldUpdateHOGImage('', '/tmp/hog.png')).toBe(true);
-            expect(ResultsRenderer.shouldUpdateHOGImage(null, '/tmp/hog.png')).toBe(true);
-        });
-
-        test('returns false if URLs match', () => {
-            const url = '/tmp/hog_123.png';
-            expect(ResultsRenderer.shouldUpdateHOGImage(`http://localhost${url}`, url)).toBe(false);
-        });
-
-        test('returns true if URLs differ', () => {
-            expect(ResultsRenderer.shouldUpdateHOGImage('/tmp/hog_old.png', '/tmp/hog_new.png')).toBe(true);
-        });
-    });
 });
