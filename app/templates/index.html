@@ -128,7 +128,8 @@
             background: white;
         }
 
-        .upload-dropzone:hover {
+        .upload-dropzone:hover,
+        .upload-dropzone.dragging {
             border-color: var(--sl-color-primary-400);
             background: var(--sl-color-primary-50);
         }
@@ -245,7 +246,9 @@
         <!-- Main Upload Card -->
         <sl-card>
             <div x-show="!taskId">
-                <div class="upload-dropzone" @click="$refs.fileInput.click()">
+                <div class="upload-dropzone" :class="{ 'dragging': isDragging }" @click="$refs.fileInput.click()"
+                    @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
+                    @drop.prevent="handleDrop($event)">
                     <i class="bi bi-cloud-upload" style="font-size: 3rem; color: var(--sl-color-primary-400)"></i>
                     <h3 style="margin-top: 1rem">Drop image here or click to upload</h3>
                     <p style="font-size: 0.9rem; color: var(--sl-color-neutral-500)">Supports PNG, JPG, JPEG</p>
@@ -525,6 +528,7 @@
                 pollInterval: null,
                 modelsStatus: 'loading',
                 theme: localStorage.getItem('theme') || 'light',
+                isDragging: false,
 
                 init() {
                     this.fetchStats();
@@ -537,6 +541,10 @@
                     // Force chart axes colors based on theme
                     Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-600');
                     Chart.defaults.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--sl-color-neutral-200');
+
+                    // Global drag/drop prevention to avoid accidental reloads
+                    window.addEventListener('dragover', e => e.preventDefault(), false);
+                    window.addEventListener('drop', e => e.preventDefault(), false);
                 },
 
                 toggleTheme() {
@@ -569,6 +577,16 @@
 
                 handleFileUpload(e) {
                     const file = e.target.files[0];
+                    this.processFile(file);
+                },
+
+                handleDrop(e) {
+                    this.isDragging = false;
+                    const file = e.dataTransfer.files[0];
+                    this.processFile(file);
+                },
+
+                processFile(file) {
                     if (!file) return;
 
                     this.resetTask();
