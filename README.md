@@ -1,4 +1,5 @@
 # RealSpark. AI Art Detector & Analyzer
+[![RealSpark CI](https://github.com/mstepien/realspark/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mstepien/realspark/actions/workflows/ci.yml)
 
 <img src="realspark-screenshot.jpg" align="right" width="360">
 
