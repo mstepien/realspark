@@ -1,6 +1,3 @@
-import pytest
-import os
-import duckdb
 import app.database
 
 def test_image_stats_schema_has_all_columns(tmp_path, monkeypatch):

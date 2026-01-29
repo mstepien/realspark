@@ -1,6 +1,5 @@
 from transformers import pipeline
 from threading import Lock
-import json
 
 SUMMARIZER_TEMPERATURE = 0.75
 

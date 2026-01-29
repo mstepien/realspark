@@ -1,4 +1,3 @@
-import pytest
 from PIL import Image
 from app.analysis.aiclassifiers import detect_ai
 

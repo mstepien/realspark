@@ -2,7 +2,6 @@ import cv2
 from PIL import Image
 import numpy as np
 import io
-import os
 from PIL import ExifTags
 
 from .aiclassifiers import detect_ai
@@ -32,8 +31,6 @@ def compute_fractal_stats(np_image):
         else:
             gray_img = gray_img.astype(np.uint8)
         
-    M = gray_img.shape[0]
-    limit_small = max(3, M // 8)
     
     # Default (Full Range)
     fd_default = fractal_dimension(gray_img)

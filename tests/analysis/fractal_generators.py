@@ -62,7 +62,7 @@ def generate_sierpinski_triangle(shape):
     """
     height, width = shape
     img = Image.new('L', (width, height), 0)
-    draw = ImageDraw.Draw(img)
+
     
     # Recursive function or Chaos game. Recursion is deterministic.
     def draw_triangle(x, y, size):

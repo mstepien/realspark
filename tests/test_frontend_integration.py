@@ -9,7 +9,6 @@ from playwright.sync_api import Page, expect
 from PIL import Image
 import io
 import re
-from app.main import app
 import time
 
 

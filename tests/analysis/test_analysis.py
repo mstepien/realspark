@@ -1,5 +1,3 @@
-import pytest
-import numpy as np
 from PIL import Image
 import io
 from app.analysis import analyze_image

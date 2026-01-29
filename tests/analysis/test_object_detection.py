@@ -1,4 +1,3 @@
-import pytest
 import os
 from PIL import Image
 from app.analysis.object_detection import detect_objects

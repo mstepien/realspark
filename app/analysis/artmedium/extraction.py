@@ -1,4 +1,3 @@
-import numpy as np
 from PIL import Image
 
 def extract_patches(img: Image.Image, size: int = 224, stride: int = 112):

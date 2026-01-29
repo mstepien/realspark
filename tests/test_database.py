@@ -1,4 +1,3 @@
-import pytest
 from app.database import save_stats, get_aggregate_stats
 
 def test_save_and_get_stats(mock_db_connection):

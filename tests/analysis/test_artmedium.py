@@ -2,7 +2,6 @@ import pytest
 from PIL import Image
 from app.analysis.artmedium import analyze_art_medium
 from app.analysis.artmedium.extraction import extract_patches
-import numpy as np
 import torch
 
 def test_extract_patches():
@@ -39,9 +38,10 @@ async def test_analyze_art_medium_basic(monkeypatch):
             'to': lambda self, device: self,
             '__call__': lambda self, **kwargs: MockOutput()
         })()
-        mock_processor = lambda images, return_tensors: type('MockInputs', (), {
-            'to': lambda self, device: {'pixel_values': torch.zeros((1, 3, 224, 224))}
-        })()
+        def mock_processor(images, return_tensors):
+            return type('MockInputs', (), {
+                'to': lambda self, device: {'pixel_values': torch.zeros((1, 3, 224, 224))}
+            })()
         return mock_processor, mock_model
 
     monkeypatch.setattr("app.analysis.artmedium.classifiers.get_clip_pipeline", mock_get_clip)

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Response, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Request, Response, UploadFile, File, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,12 +11,13 @@ from app.analysis import (
 )
 from app.analysis.summarizer import generate_summary, warmup_summarizer
 from app.analysis.histogram import compute_histogram
-import io
 import os
 import uuid
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from app.models import UploadResponse, TaskStatus, AggregateStats
+from app.analysis.aiclassifiers import warmup_classifier
+from app.analysis.object_detection import warmup_object_detector
 
 app = FastAPI()
 
@@ -28,8 +29,7 @@ app.mount("/tmp", StaticFiles(directory="tmp"), name="tmp")
 
 templates = Jinja2Templates(directory="app/templates")
 
-from app.analysis.aiclassifiers import warmup_classifier
-from app.analysis.object_detection import warmup_object_detector
+
 
 executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
 models_ready = False
