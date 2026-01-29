@@ -21,6 +21,9 @@ from app.models import UploadResponse, TaskStatus, AggregateStats
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+# Ensure tmp directory exists
+os.makedirs("tmp", exist_ok=True)
 app.mount("/tmp", StaticFiles(directory="tmp"), name="tmp")
 
 templates = Jinja2Templates(directory="app/templates")

@@ -10,7 +10,10 @@ def test_detect_objects_mona_lisa():
     Since we are importing directly from the module and not the package that might be patched,
     we can test the logic.
     """
-    image_path = "/app/tests/resources/images/mona_lisa.jpg"
+    # Use path relative to this file to be resistant to different workdir roots (e.g. CI)
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) # Go up from tests/analysis/ to root
+    image_path = os.path.join(base_dir, "tests/resources/images/mona_lisa.jpg")
+    
     assert os.path.exists(image_path), f"Mona Lisa image not found at {image_path}"
     
     img = Image.open(image_path)
