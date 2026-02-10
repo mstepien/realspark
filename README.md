@@ -1,5 +1,5 @@
 # RealSpark. AI Art Detector & Analyzer
-[![RealSpark CI](https://github.com/mstepien/realspark/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mstepien/realspark/actions/workflows/ci.yml)
+[![CI](https://github.com/mstepien/realspark/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mstepien/realspark/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://www.python.org/) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)](https://www.docker.com/) [![Blog](https://img.shields.io/badge/Blog-smart.biz.pl-blue)](https://www.smart.biz.pl/techblog/realspark)
 
 <img src="realspark-screenshot.jpg" align="right" width="360">
 
